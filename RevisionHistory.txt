@@ -1,4 +1,7 @@
 MyEMSL_MTS_File_Cache_Manager Change Log
 
+Version 1.0.5094; December 12, 2013
+	- Added support for optional files (which may not exist in MyEMSL)
+
 Version 1.0.5093; December 11, 2013
 	- Initial Release

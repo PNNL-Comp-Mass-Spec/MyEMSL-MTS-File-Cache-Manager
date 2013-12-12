@@ -62,6 +62,7 @@ namespace MyEMSL_MTS_File_Cache_Manager
 			public string ResultsFolderName;
 			public string Filename;
 			public DateTime Queued;
+			public bool Optional;
 		}
 
 
@@ -236,7 +237,7 @@ namespace MyEMSL_MTS_File_Cache_Manager
 			if (Convert.IsDBNull(value))
 				return DateTime.Now;
 			else
-				return (DateTime)value;
+				return Convert.ToDateTime(value);
 
 		}
 
@@ -247,7 +248,7 @@ namespace MyEMSL_MTS_File_Cache_Manager
 			if (Convert.IsDBNull(value))
 				return 0;
 			else
-				return (int)value;
+				return Convert.ToInt32(value);
 
 		}
 
@@ -258,7 +259,7 @@ namespace MyEMSL_MTS_File_Cache_Manager
 			if (Convert.IsDBNull(value))
 				return string.Empty;
 			else
-				return (string)value;
+				return Convert.ToString(value);
 
 		}
 
@@ -282,7 +283,7 @@ namespace MyEMSL_MTS_File_Cache_Manager
 			var lstFiles = new List<udtFileInfo>();
 
 			var sql = " SELECT Entry_ID, Dataset_ID, Job, Client_Path, Server_Path," +
-					  " Parent_Path, Dataset_Folder, Results_Folder_Name, Filename, Queued" +
+					  " Parent_Path, Dataset_Folder, Results_Folder_Name, Filename, Queued, Optional" +
 					  " FROM V_MyEMSL_FileCache";
 
 			if (taskID > 0)
@@ -315,7 +316,8 @@ namespace MyEMSL_MTS_File_Cache_Manager
 						DatasetFolder = GetDBString(reader, "Dataset_Folder"),
 						ResultsFolderName = GetDBString(reader, "Results_Folder_Name"),
 						Filename = GetDBString(reader, "Filename"),
-						Queued = GetDBDate(reader, "Queued")
+						Queued = GetDBDate(reader, "Queued"),
+						Optional = TinyIntToBool(GetDBInt(reader, "Optional"))
 					};
 
 					lstFiles.Add(fileInfo);
@@ -493,10 +495,27 @@ namespace MyEMSL_MTS_File_Cache_Manager
 					if (string.IsNullOrWhiteSpace(cacheFolderPath))
 					{
 						if (this.Perspective == ePerspective.Server)
+						{
 							cacheFolderPath = lstFiles.First().ServerPath;
+							if (string.IsNullOrEmpty(cacheFolderPath))
+							{
+								ReportError("Server_Path is empty for EntryID " + lstFiles.First().EntryID + ", " + lstFiles.First().Filename +
+								            "; Unable to manage cached files");
+								return false;
+							}
+						}
 						else
+						{
 							cacheFolderPath = lstFiles.First().ClientPath;
+							if (string.IsNullOrEmpty(cacheFolderPath))
+							{
+								ReportError("Client_Path is empty for EntryID " + lstFiles.First().EntryID + ", " + lstFiles.First().Filename +
+								            "; Unable to manage cached files");
+								return false;
+							}
+						}
 					}
+					
 					currentFreeSpaceGB = GetFreeDiskSpaceGB(cacheFolderPath);
 
 					if (currentFreeSpaceGB < 0)
@@ -568,7 +587,7 @@ namespace MyEMSL_MTS_File_Cache_Manager
 			}
 			catch (Exception ex)
 			{
-				ReportError("Error in RequestTask: " + ex.Message, true);
+				ReportError("Error in PreviewFilesToCache: " + ex.Message, true);
 				return false;
 			}
 
@@ -613,6 +632,7 @@ namespace MyEMSL_MTS_File_Cache_Manager
 				var lstArchiveFileIDs = new List<Int64>();
 
 				int errorsLoggedToDB = 0;
+				int validFileCountToCache = 0;
 
 				// Filter lstArchiveFiles using the files in lstFilesToCache
 				foreach (var udtFile in lstFilesToCache)
@@ -622,22 +642,31 @@ namespace MyEMSL_MTS_File_Cache_Manager
 											 String.Compare(item.Filename, udtFile.Filename, StringComparison.OrdinalIgnoreCase) == 0
 									   select item).ToList();
 
+					validFileCountToCache++;
+
 					if (archiveFile.Count == 0)
 					{
 						// Match not found
 
+						if (udtFile.Optional)
+						{
+							ReportMessage("Skipping optional file not found in MyEMSL: " + Path.Combine(udtFile.ResultsFolderName, udtFile.Filename));
+							validFileCountToCache--;
+							continue;
+						}
+
 						var logToDB = false;
-						
+
 						if (errorsLoggedToDB < 50)
 						{
 							errorsLoggedToDB++;
 							logToDB = true;
 						}
-						
+
 						ReportMessage(
 							"Could not find file " + Path.Combine(udtFile.ResultsFolderName, udtFile.Filename) + " in MyEMSL for dataset " +
 							datasetID + " in MyEMSL", clsLogTools.LogLevels.ERROR, logToDB);
-						
+
 						continue;
 					}
 
@@ -677,7 +706,7 @@ namespace MyEMSL_MTS_File_Cache_Manager
 
 				}
 
-				if (lstArchiveFileIDs.Count == lstFilesToCache.Count)
+				if (lstArchiveFileIDs.Count == validFileCountToCache)
 					return true;
 
 				completionCode = 2;
@@ -1022,6 +1051,14 @@ namespace MyEMSL_MTS_File_Cache_Manager
 			}
 
 			return success;
+		}
+
+		protected bool TinyIntToBool(int value)
+		{
+			if (value == 0)
+				return false;
+
+			return true;
 		}
 
 		#region "Events"
