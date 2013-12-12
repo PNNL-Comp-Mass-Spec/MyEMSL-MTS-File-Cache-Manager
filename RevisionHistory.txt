@@ -1,0 +1,4 @@
+MyEMSL_MTS_File_Cache_Manager Change Log
+
+Version 1.0.5093; December 11, 2013
+	- Initial Release
