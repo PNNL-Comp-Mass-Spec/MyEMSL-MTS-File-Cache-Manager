@@ -18,16 +18,6 @@ namespace MyEMSL_MTS_File_Cache_Manager
 		protected const string SP_NAME_REQUEST_TASK = "RequestMyEMSLCacheTask";
 		protected const string SP_NAME_SET_TASK_COMPLETE = "SetMyEMSLCacheTaskComplete";
 
-		/// <summary>
-		/// Maximum number of files to archive
-		/// </summary>
-		/// <remarks>
-		/// Since data package uploads always work with the entire data package folder and all subfolders,
-		///   this a maximum cap on the number of files that will be stored in MyEMSL for a given data package
-		/// If a data package has more than 600 files, then zip up groups of files before archiving to MyEMSL
-		/// </remarks>
-		protected const int MAX_FILES_TO_ARCHIVE = 600;
-
 		#endregion
 
 		#region "Enums"
@@ -50,7 +40,7 @@ namespace MyEMSL_MTS_File_Cache_Manager
 
 		#region "Structures"
 
-		public struct udtFileInfo
+		protected struct udtFileInfo
 		{
 			public int EntryID;
 			public int DatasetID;
@@ -70,10 +60,9 @@ namespace MyEMSL_MTS_File_Cache_Manager
 
 		#region "Class variables"
 
-		protected string mLogDBConnectionString;
+		protected readonly string mLogDBConnectionString;
 
 		protected PRISM.DataBase.clsExecuteDatabaseSP m_ExecuteSP;
-		protected DateTime mLastStatusUpdate;
 
 		protected double mPercentComplete;
 		protected DateTime mLastProgressUpdateTime;
@@ -199,7 +188,7 @@ namespace MyEMSL_MTS_File_Cache_Manager
 
 				if (diFolderToDelete.Exists)
 				{
-					if (String.Compare(diFolderToDelete.FullName, diCacheFolder.FullName, System.StringComparison.OrdinalIgnoreCase) == 0)
+					if (String.Compare(diFolderToDelete.FullName, diCacheFolder.FullName, StringComparison.OrdinalIgnoreCase) == 0)
 					{
 						// Do not delete the cache folder
 						return;
@@ -329,7 +318,7 @@ namespace MyEMSL_MTS_File_Cache_Manager
 
 		private double GetFreeDiskSpaceGB(string cacheFolderPath)
 		{
-			Int64 freeSpaceBytes = 0;
+			Int64 freeSpaceBytes;
 
 			try
 			{
@@ -345,7 +334,7 @@ namespace MyEMSL_MTS_File_Cache_Manager
 						folderName += '\\';
 					}
 
-					ulong free = 0, dummy1 = 0, dummy2 = 0;
+					ulong free, dummy1, dummy2;
 
 					if (GetDiskFreeSpaceEx(folderName, out free, out dummy1, out dummy2))
 					{
@@ -419,7 +408,6 @@ namespace MyEMSL_MTS_File_Cache_Manager
 		protected void Initialize()
 		{
 			this.ErrorMessage = string.Empty;
-			this.mLastStatusUpdate = DateTime.UtcNow;
 
 			mPercentComplete = 0;
 			mLastProgressUpdateTime = DateTime.UtcNow;
@@ -435,7 +423,7 @@ namespace MyEMSL_MTS_File_Cache_Manager
 			clsLogTools.WriteLog(clsLogTools.LoggerTypes.LogFile, clsLogTools.LogLevels.INFO, msg);
 
 			m_ExecuteSP = new PRISM.DataBase.clsExecuteDatabaseSP(this.MTSConnectionString);
-			m_ExecuteSP.DBErrorEvent += new PRISM.DataBase.clsExecuteDatabaseSP.DBErrorEventEventHandler(m_ExecuteSP_DBErrorEvent);
+			m_ExecuteSP.DBErrorEvent += m_ExecuteSP_DBErrorEvent;
 
 		}
 		
@@ -939,7 +927,7 @@ namespace MyEMSL_MTS_File_Cache_Manager
 			return taskID;
 		}
 
-		protected int SetTaskComplete(int taskID, int completionCode, string completionMessage, List<int> lstCachedFileIDs)
+		protected int SetTaskComplete(int taskID, int completionCode, string completionMessage, IEnumerable<int> lstCachedFileIDs)
 		{
 
 			try

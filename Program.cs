@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 
 namespace MyEMSL_MTS_File_Cache_Manager
 {
@@ -18,7 +16,7 @@ namespace MyEMSL_MTS_File_Cache_Manager
 	internal class Program
 	{
 
-		public const string PROGRAM_DATE = "December 12, 2013";
+		public const string PROGRAM_DATE = "August 18, 2014";
 
 		protected static clsLogTools.LogLevels mLogLevel;
 
