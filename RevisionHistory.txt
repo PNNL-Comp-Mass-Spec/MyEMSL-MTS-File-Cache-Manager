@@ -1,5 +1,8 @@
 MyEMSL_MTS_File_Cache_Manager Change Log
 
+Version 1.0.5375; August 18, 2014
+	- Added clsWindowsUpdateStatus
+
 Version 1.0.5343; August 18, 2014
 	- Removed unused code
 	- New version of MyMyEMSLReader.dll and Pacifica.Core.dll

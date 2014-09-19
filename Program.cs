@@ -16,7 +16,7 @@ namespace MyEMSL_MTS_File_Cache_Manager
 	internal class Program
 	{
 
-		public const string PROGRAM_DATE = "August 18, 2014";
+		public const string PROGRAM_DATE = "September 19, 2014";
 
 		protected static clsLogTools.LogLevels mLogLevel;
 
@@ -60,7 +60,21 @@ namespace MyEMSL_MTS_File_Cache_Manager
 				else
 				{
 					if (mLocalServerMode)
+					{
 						mMTSServer = string.Empty;
+					}
+					else
+					{
+						string pendingWindowsUpdateMessage;
+						var updatesArePending = clsWindowsUpdateStatus.UpdatesArePending(out pendingWindowsUpdateMessage);
+
+						if (updatesArePending)
+						{
+							Console.WriteLine(pendingWindowsUpdateMessage);
+							Console.WriteLine("Will not contact the MTS server to process cache requests");
+							return 0;
+						}
+					}
 
 					var downloader = new clsMyEMSLMTSFileCacher(mMTSServer, mLogLevel, mLogDBConnectionString)
 					{
