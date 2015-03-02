@@ -16,7 +16,7 @@ namespace MyEMSL_MTS_File_Cache_Manager
 	internal class Program
 	{
 
-		public const string PROGRAM_DATE = "September 19, 2014";
+		public const string PROGRAM_DATE = "March 2, 2015";
 
 		protected static clsLogTools.LogLevels mLogLevel;
 

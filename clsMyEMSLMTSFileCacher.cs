@@ -533,7 +533,7 @@ namespace MyEMSL_MTS_File_Cache_Manager
 			}
 			catch (Exception ex)
 			{
-				ReportError("Error in ManageCachedFiles: " + ex.Message, true);
+				ReportError("Error in ManageCachedFiles for server " + MTSServer + ": " + ex.Message, true);
 				return false;
 			}
 
@@ -575,7 +575,7 @@ namespace MyEMSL_MTS_File_Cache_Manager
 			}
 			catch (Exception ex)
 			{
-				ReportError("Error in PreviewFilesToCache: " + ex.Message, true);
+                ReportError("Error in PreviewFilesToCache for server " + MTSServer + ": " + ex.Message, true);
 				return false;
 			}
 
@@ -704,7 +704,7 @@ namespace MyEMSL_MTS_File_Cache_Manager
 			}
 			catch (Exception ex)
 			{
-				ReportError("Error in ProcessTask: " + ex.Message, true);
+                ReportError("Error in ProcessTask for server " + MTSServer + ": " + ex.Message, true);
 				return false;
 			}
 			
@@ -817,7 +817,7 @@ namespace MyEMSL_MTS_File_Cache_Manager
 			}
 			catch (Exception ex)
 			{
-				ReportError("Error in PurgeOldFiles: " + ex.Message, true);
+                ReportError("Error in PurgeOldFiles for server " + MTSServer + ": " + ex.Message, true);
 				return false;
 			}
 
@@ -920,7 +920,7 @@ namespace MyEMSL_MTS_File_Cache_Manager
 			}
 			catch (Exception ex)
 			{
-				ReportError("Error in RequestTask: " + ex.Message, true);
+                ReportError("Error in RequestTask for server " + MTSServer + ": " + ex.Message, true);
 				taskID = 0;
 			}
 
@@ -969,7 +969,7 @@ namespace MyEMSL_MTS_File_Cache_Manager
 			}
 			catch (Exception ex)
 			{
-				ReportError("Error in SetTaskComplete: " + ex.Message, true);
+                ReportError("Error in SetTaskComplete for server " + MTSServer + ": " + ex.Message, true);
 				taskID = 0;
 			}
 
