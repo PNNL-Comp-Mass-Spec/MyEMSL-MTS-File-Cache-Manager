@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using PRISM;
 
 namespace MyEMSL_MTS_File_Cache_Manager
 {
