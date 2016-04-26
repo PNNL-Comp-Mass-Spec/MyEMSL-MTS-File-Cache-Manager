@@ -1,5 +1,8 @@
 MyEMSL_MTS_File_Cache_Manager Change Log
 
+Version 1.0.5959; April 25, 2016
+	- Update to .NET 4.5.1
+
 Version 1.0.5781; October 30, 2015
 	- Moved clsWindowsUpdateStatus into PRISM.dll 
 
