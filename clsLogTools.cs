@@ -81,7 +81,7 @@ namespace MyEMSL_MTS_File_Cache_Manager
 					case LoggerTypes.LogFile:
 						MyLogger = m_FileLogger;
 						// Check to determine if a new file should be started
-						string TestFileDate = DateTime.Now.ToString("MM-dd-yyyy");
+						var TestFileDate = DateTime.Now.ToString("MM-dd-yyyy");
 						if (TestFileDate != m_FileDate)
 						{
 							m_FileDate = TestFileDate;
@@ -127,7 +127,7 @@ namespace MyEMSL_MTS_File_Cache_Manager
 			/// <param name="Ex">Exception to be logged</param></param>
 			public static void WriteLog(LoggerTypes LoggerType, LogLevels LogLevel, string InpMsg, Exception Ex)
 			{
-				ILog MyLogger = default(ILog);
+				var MyLogger = default(ILog);
 
 				//Establish which logger will be used
 				switch (LoggerType)
@@ -138,7 +138,7 @@ namespace MyEMSL_MTS_File_Cache_Manager
 					case LoggerTypes.LogFile:
 						MyLogger = m_FileLogger;
 						// Check to determine if a new file should be started
-						string TestFileDate = DateTime.Now.ToString("MM-dd-yyyy");
+						var TestFileDate = DateTime.Now.ToString("MM-dd-yyyy");
 						if (TestFileDate != m_FileDate)
 						{
 							m_FileDate = TestFileDate;
@@ -193,17 +193,17 @@ namespace MyEMSL_MTS_File_Cache_Manager
 			public static void ChangeLogFileName()
 			{
 				//Get a list of appenders
-				List<log4net.Appender.IAppender> AppendList = FindAppenders("FileAppender");
+				var AppendList = FindAppenders("FileAppender");
 				if (AppendList == null)
 				{
 					WriteLog(LoggerTypes.LogSystem, LogLevels.WARN, "Unable to change file name. No appender found");
 					return;
 				}
 
-				foreach (log4net.Appender.IAppender SelectedAppender in AppendList)
+				foreach (var SelectedAppender in AppendList)
 				{
 					//Convert the IAppender object to a FileAppender
-					log4net.Appender.FileAppender AppenderToChange = SelectedAppender as log4net.Appender.FileAppender;
+					var AppenderToChange = SelectedAppender as log4net.Appender.FileAppender;
 					if (AppenderToChange == null)
 					{
 						WriteLog(LoggerTypes.LogSystem, LogLevels.ERROR, "Unable to convert appender");
@@ -223,14 +223,14 @@ namespace MyEMSL_MTS_File_Cache_Manager
 			private static List<log4net.Appender.IAppender> FindAppenders(string AppendName)
 			{
 				//Get a list of the current loggers
-				ILog[] LoggerList = LogManager.GetCurrentLoggers();
+				var LoggerList = LogManager.GetCurrentLoggers();
 				if (LoggerList.GetLength(0) < 1) return null;
 
 				//Create a List of appenders matching the criteria for each logger
-				List<log4net.Appender.IAppender> RetList = new List<log4net.Appender.IAppender>();
-				foreach (ILog TestLogger in LoggerList)
+				var RetList = new List<log4net.Appender.IAppender>();
+				foreach (var TestLogger in LoggerList)
 				{
-					foreach (log4net.Appender.IAppender TestAppender in TestLogger.Logger.Repository.GetAppenders())
+					foreach (var TestAppender in TestLogger.Logger.Repository.GetAppenders())
 					{
 						if (TestAppender.Name == AppendName) RetList.Add(TestAppender);
 					}
@@ -253,7 +253,7 @@ namespace MyEMSL_MTS_File_Cache_Manager
 			/// <param name="InpLevel">"InpLevel">Integer corresponding to level (1-5, 5 being most verbose)</param>
 			public static void SetFileLogLevel(int InpLevel)
 			{
-				Type LogLevelEnumType = typeof(LogLevels);
+				var LogLevelEnumType = typeof(LogLevels);
 
 				//Verify input level is a valid log level
 				if (!Enum.IsDefined(LogLevelEnumType, InpLevel))
@@ -263,7 +263,7 @@ namespace MyEMSL_MTS_File_Cache_Manager
 				}
 
 				//Convert input integer into the associated enum
-				LogLevels Lvl = (LogLevels)Enum.Parse(LogLevelEnumType, InpLevel.ToString());
+				var Lvl = (LogLevels)Enum.Parse(LogLevelEnumType, InpLevel.ToString());
 
 				SetFileLogLevel(Lvl);
 			}	// End sub
@@ -274,7 +274,7 @@ namespace MyEMSL_MTS_File_Cache_Manager
 			/// <param name="InpLevel">LogLevels value defining level (Debug is most verbose)</param>
 			public static void SetFileLogLevel(LogLevels InpLevel)
 			{
-				log4net.Repository.Hierarchy.Logger LogRepo = (log4net.Repository.Hierarchy.Logger)m_FileLogger.Logger;
+				var LogRepo = (log4net.Repository.Hierarchy.Logger)m_FileLogger.Logger;
 
 				switch (InpLevel)
 				{
@@ -303,14 +303,14 @@ namespace MyEMSL_MTS_File_Cache_Manager
 			/// <returns>A configured file appender</returns>
 			private static log4net.Appender.FileAppender CreateFileAppender(string LogfileName)
 			{
-				log4net.Appender.FileAppender ReturnAppender = new log4net.Appender.FileAppender();
+				var ReturnAppender = new log4net.Appender.FileAppender();
 
 				ReturnAppender.Name = "FileAppender";
 				m_FileDate = DateTime.Now.ToString("MM-dd-yyyy");
 				m_BaseFileName = LogfileName;
 				ReturnAppender.File = m_BaseFileName + "_" + m_FileDate + ".txt";
 				ReturnAppender.AppendToFile = true;
-				log4net.Layout.PatternLayout Layout = new log4net.Layout.PatternLayout();
+				var Layout = new log4net.Layout.PatternLayout();
 				Layout.ConversionPattern = "%date{MM/dd/yyyy HH:mm:ss}, %message, %level,%newline";
 				Layout.ActivateOptions();
 				ReturnAppender.Layout = Layout;
@@ -326,7 +326,7 @@ namespace MyEMSL_MTS_File_Cache_Manager
 			/// <returns>A configured file appender</returns>
 			private static log4net.Appender.RollingFileAppender CreateFtpLogfileAppender(string logFileName)
 			{
-				log4net.Appender.RollingFileAppender ReturnAppender = new log4net.Appender.RollingFileAppender();
+				var ReturnAppender = new log4net.Appender.RollingFileAppender();
 
 				ReturnAppender.Name = "RollingFileAppender";
 				//m_FileDate = DateTime.Now.ToString("MM-dd-yyyy");
@@ -335,7 +335,7 @@ namespace MyEMSL_MTS_File_Cache_Manager
 				ReturnAppender.AppendToFile = true;
 				ReturnAppender.RollingStyle = log4net.Appender.RollingFileAppender.RollingMode.Date;
 				ReturnAppender.DatePattern = "yyyyMMdd";
-				log4net.Layout.PatternLayout Layout = new log4net.Layout.PatternLayout();
+				var Layout = new log4net.Layout.PatternLayout();
 				Layout.ConversionPattern = "%message%newline";
 				Layout.ActivateOptions();
 				ReturnAppender.Layout = Layout;
@@ -351,7 +351,7 @@ namespace MyEMSL_MTS_File_Cache_Manager
 			/// <param name="LogLevel">Debug level for file logger</param>
 			public static void CreateFileLogger(string LogFileName, int LogLevel)
 			{
-				log4net.Repository.Hierarchy.Logger curLogger = (log4net.Repository.Hierarchy.Logger)m_FileLogger.Logger;
+				var curLogger = (log4net.Repository.Hierarchy.Logger)m_FileLogger.Logger;
 				m_FileAppender = CreateFileAppender(LogFileName);
 				curLogger.AddAppender(m_FileAppender);
 				SetFileLogLevel(LogLevel);
@@ -373,7 +373,7 @@ namespace MyEMSL_MTS_File_Cache_Manager
 			/// <param name="logFileName">Name of FTP log file</param>
 			public static void CreateFtpLogFileLogger(string logFileName)
 			{
-				log4net.Repository.Hierarchy.Logger curLogger = (log4net.Repository.Hierarchy.Logger)m_FtpFileLogger.Logger;
+				var curLogger = (log4net.Repository.Hierarchy.Logger)m_FtpFileLogger.Logger;
 				m_FtpLogFileAppender = CreateFtpLogfileAppender(logFileName);
 				curLogger.AddAppender(m_FtpLogFileAppender);
 				curLogger.Level = log4net.Core.Level.Debug;
@@ -387,7 +387,7 @@ namespace MyEMSL_MTS_File_Cache_Manager
 			/// <param name="ModuleName">Module name used by logger</param></param>
 			public static void CreateDbLogger(string ConnStr, string ModuleName)
 			{
-				log4net.Repository.Hierarchy.Logger curLogger = (log4net.Repository.Hierarchy.Logger)m_DbLogger.Logger;
+				var curLogger = (log4net.Repository.Hierarchy.Logger)m_DbLogger.Logger;
 				curLogger.Level = log4net.Core.Level.Info;
 				curLogger.AddAppender(CreateDbAppender(ConnStr,ModuleName));
 				curLogger.AddAppender(m_FileAppender);
@@ -401,7 +401,7 @@ namespace MyEMSL_MTS_File_Cache_Manager
 			/// <returns>ADONet database appender</returns>
 			public static log4net.Appender.AdoNetAppender CreateDbAppender(string ConnStr, string ModuleName)
 			{
-				log4net.Appender.AdoNetAppender ReturnAppender = new log4net.Appender.AdoNetAppender();
+				var ReturnAppender = new log4net.Appender.AdoNetAppender();
 
 				ReturnAppender.BufferSize = 1;
 				ReturnAppender.ConnectionType = "System.Data.SqlClient.SqlConnection, System.Data, Version=1.0.3300.0, Culture=neutral, PublicKeyToken=b77a5c561934e089";
@@ -410,7 +410,7 @@ namespace MyEMSL_MTS_File_Cache_Manager
 				ReturnAppender.CommandText = "PostLogEntry";
 
 				//Type parameter
-				log4net.Appender.AdoNetAppenderParameter TypeParam = new log4net.Appender.AdoNetAppenderParameter();
+				var TypeParam = new log4net.Appender.AdoNetAppenderParameter();
 				TypeParam.ParameterName = "@type";
 				TypeParam.DbType = DbType.String;
 				TypeParam.Size = 50;
@@ -418,7 +418,7 @@ namespace MyEMSL_MTS_File_Cache_Manager
 				ReturnAppender.AddParameter(TypeParam);
 
 				//Message parameter
-				log4net.Appender.AdoNetAppenderParameter MsgParam = new log4net.Appender.AdoNetAppenderParameter();
+				var MsgParam = new log4net.Appender.AdoNetAppenderParameter();
 				MsgParam.ParameterName = "@message";
 				MsgParam.DbType = DbType.String;
 				MsgParam.Size = 4000;
@@ -426,7 +426,7 @@ namespace MyEMSL_MTS_File_Cache_Manager
 				ReturnAppender.AddParameter(MsgParam);
 
 				//PostedBy parameter
-				log4net.Appender.AdoNetAppenderParameter PostByParam = new log4net.Appender.AdoNetAppenderParameter();
+				var PostByParam = new log4net.Appender.AdoNetAppenderParameter();
 				PostByParam.ParameterName = "@postedBy";
 				PostByParam.DbType = DbType.String;
 				PostByParam.Size = 128;
@@ -445,11 +445,11 @@ namespace MyEMSL_MTS_File_Cache_Manager
 			/// <returns></returns>
 			private static log4net.Layout.IRawLayout CreateLayout(string LayoutStr)
 			{
-				log4net.Layout.RawLayoutConverter LayoutConvert = new log4net.Layout.RawLayoutConverter();
-				log4net.Layout.PatternLayout ReturnLayout = new log4net.Layout.PatternLayout();
+				var LayoutConvert = new log4net.Layout.RawLayoutConverter();
+				var ReturnLayout = new log4net.Layout.PatternLayout();
 				ReturnLayout.ConversionPattern = LayoutStr;
 				ReturnLayout.ActivateOptions();
-				log4net.Layout.IRawLayout retItem = (log4net.Layout.IRawLayout)LayoutConvert.ConvertFrom(ReturnLayout);
+				var retItem = (log4net.Layout.IRawLayout)LayoutConvert.ConvertFrom(ReturnLayout);
 				return retItem;
 			}	// End sub
 		#endregion

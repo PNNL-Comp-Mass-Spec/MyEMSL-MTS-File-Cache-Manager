@@ -1,19 +1,20 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading;
+using FileProcessor;
 using PRISM;
 
 namespace MyEMSL_MTS_File_Cache_Manager
 {
-    // This program processes the MyEMSL Download Queue in MTS to download requested files
-    //
-    // -------------------------------------------------------------------------------
-    // Written by Matthew Monroe for the Department of Energy (PNNL, Richland, WA)
-    //
-    // E-mail: matthew.monroe@pnnl.gov or matt@alchemistmatt.com
-    // Website: http://panomics.pnnl.gov/ or http://omics.pnl.gov or http://www.sysbio.org/resources/staff/
-    // -------------------------------------------------------------------------------
-    // 
-
+    /// <summary>
+    /// This program processes the MyEMSL Download Queue in MTS to download requested files
+    /// </summary>
+    /// <remarks>
+    /// Written by Matthew Monroe for the Department of Energy (PNNL, Richland, WA)
+    ///
+    /// E-mail: matthew.monroe@pnnl.gov or matt@alchemistmatt.com
+    /// Website: http://panomics.pnnl.gov/ or http://omics.pnl.gov or http://www.sysbio.org/resources/staff/
+    /// </remarks>
     internal static class Program
     {
 
@@ -98,6 +99,7 @@ namespace MyEMSL_MTS_File_Cache_Manager
             {
                 Console.WriteLine("Error occurred in Program->Main: " + Environment.NewLine + ex.Message);
                 Console.WriteLine(ex.StackTrace);
+                Thread.Sleep(1500);
                 return -1;
             }
 
@@ -109,7 +111,7 @@ namespace MyEMSL_MTS_File_Cache_Manager
             return System.Reflection.Assembly.GetExecutingAssembly().GetName().Version + " (" + PROGRAM_DATE + ")";
         }
 
-        private static bool SetOptionsUsingCommandLineParameters(FileProcessor.clsParseCommandLine objParseCommandLine)
+        private static bool SetOptionsUsingCommandLineParameters(clsParseCommandLine objParseCommandLine)
         {
             // Returns True if no problems; otherwise, returns false
             var lstValidParameters = new List<string> { "Local", "Preview", "LogDB", "FS" };
@@ -130,7 +132,7 @@ namespace MyEMSL_MTS_File_Cache_Manager
                     return false;
                 }
 
-                // Query objParseCommandLine to see if various parameters are present						
+                // Query objParseCommandLine to see if various parameters are present
                 if (objParseCommandLine.NonSwitchParameterCount > 0)
                 {
                     mMTSServer = objParseCommandLine.RetrieveNonSwitchParameter(0);
@@ -249,7 +251,7 @@ namespace MyEMSL_MTS_File_Cache_Manager
                 Console.WriteLine();
 
                 // Delay for 750 msec in case the user double clicked this file from within Windows Explorer (or started the program via a shortcut)
-                System.Threading.Thread.Sleep(750);
+                Thread.Sleep(750);
 
             }
             catch (Exception ex)
@@ -285,7 +287,7 @@ namespace MyEMSL_MTS_File_Cache_Manager
             if (pauseAfterError)
             {
                 Console.WriteLine("===============================================");
-                System.Threading.Thread.Sleep(1500);
+                Thread.Sleep(1500);
             }
         }
 
