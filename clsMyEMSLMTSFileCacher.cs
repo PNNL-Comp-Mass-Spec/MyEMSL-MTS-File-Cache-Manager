@@ -15,8 +15,8 @@ namespace MyEMSL_MTS_File_Cache_Manager
         public const string LOG_DB_CONNECTION_STRING = "Data Source=gigasax;Initial Catalog=DMS_Data_Package;Integrated Security=SSPI;";
         public const int DEFAULT_MINIMUM_CACHE_FREE_SPACE_GB = 75;
 
-        protected const string SP_NAME_REQUEST_TASK = "RequestMyEMSLCacheTask";
-        protected const string SP_NAME_SET_TASK_COMPLETE = "SetMyEMSLCacheTaskComplete";
+        private const string SP_NAME_REQUEST_TASK = "RequestMyEMSLCacheTask";
+        private const string SP_NAME_SET_TASK_COMPLETE = "SetMyEMSLCacheTaskComplete";
 
         #endregion
 
@@ -40,7 +40,7 @@ namespace MyEMSL_MTS_File_Cache_Manager
 
         #region "Structures"
 
-        protected struct udtFileInfo
+        private struct udtFileInfo
         {
             public int EntryID;
             public int DatasetID;
@@ -60,12 +60,12 @@ namespace MyEMSL_MTS_File_Cache_Manager
 
         #region "Class variables"
 
-        protected readonly string mLogDBConnectionString;
+        private readonly string mLogDBConnectionString;
 
-        protected PRISM.DataBase.clsExecuteDatabaseSP m_ExecuteSP;
+        private PRISM.DataBase.clsExecuteDatabaseSP m_ExecuteSP;
 
-        protected double mPercentComplete;
-        protected DateTime mLastProgressUpdateTime;
+        private double mPercentComplete;
+        private DateTime mLastProgressUpdateTime;
 
         #endregion
 
@@ -174,12 +174,12 @@ namespace MyEMSL_MTS_File_Cache_Manager
             Initialize();
         }
 
-        protected double BytesToGB(long bytes)
+        private double BytesToGB(long bytes)
         {
             return bytes / 1024.0 / 1024.0 / 1024.0;
         }
 
-        protected void DeleteFolderIfEmpty(string cacheFolderPath, string folderPath)
+        private void DeleteFolderIfEmpty(string cacheFolderPath, string folderPath)
         {
             try
             {
@@ -219,7 +219,7 @@ namespace MyEMSL_MTS_File_Cache_Manager
             }
         }
 
-        protected DateTime GetDBDate(SqlDataReader reader, string columnName)
+        private DateTime GetDBDate(SqlDataReader reader, string columnName)
         {
             object value = reader[columnName];
 
@@ -230,7 +230,7 @@ namespace MyEMSL_MTS_File_Cache_Manager
 
         }
 
-        protected int GetDBInt(SqlDataReader reader, string columnName)
+        private int GetDBInt(SqlDataReader reader, string columnName)
         {
             object value = reader[columnName];
 
@@ -241,7 +241,7 @@ namespace MyEMSL_MTS_File_Cache_Manager
 
         }
 
-        protected string GetDBString(SqlDataReader reader, string columnName)
+        private string GetDBString(SqlDataReader reader, string columnName)
         {
             object value = reader[columnName];
 
@@ -256,7 +256,7 @@ namespace MyEMSL_MTS_File_Cache_Manager
         /// Finds the next set of files that would be cached
         /// </summary>
         /// <returns></returns>
-        protected List<udtFileInfo> GetFilesToCache()
+        private List<udtFileInfo> GetFilesToCache()
         {
             return GetFilesToCache(0);
         }
@@ -266,7 +266,7 @@ namespace MyEMSL_MTS_File_Cache_Manager
         /// </summary>
         /// <param name="taskID"></param>
         /// <returns></returns>
-        protected List<udtFileInfo> GetFilesToCache(int taskID)
+        private List<udtFileInfo> GetFilesToCache(int taskID)
         {
 
             var lstFiles = new List<udtFileInfo>();
@@ -363,7 +363,7 @@ namespace MyEMSL_MTS_File_Cache_Manager
             return BytesToGB(freeSpaceBytes);
         }
 
-        protected List<udtFileInfo> GetOldestCachedFiles(int maxFileCount)
+        private List<udtFileInfo> GetOldestCachedFiles(int maxFileCount)
         {
 
             var lstFiles = new List<udtFileInfo>();
@@ -405,7 +405,7 @@ namespace MyEMSL_MTS_File_Cache_Manager
             return lstFiles;
         }
 
-        protected void Initialize()
+        private void Initialize()
         {
             this.ErrorMessage = string.Empty;
 
@@ -432,7 +432,7 @@ namespace MyEMSL_MTS_File_Cache_Manager
         /// Deletes old files if the free space is below the minimum
         /// </summary>
         /// <returns></returns>
-        protected bool ManageCachedFiles()
+        private bool ManageCachedFiles()
         {
             const int FILE_COUNT_TO_RETRIEVE = 500;
 
@@ -540,7 +540,7 @@ namespace MyEMSL_MTS_File_Cache_Manager
             return true;
         }
 
-        protected bool PreviewFilesToCache()
+        private bool PreviewFilesToCache()
         {
             try
             {
@@ -582,7 +582,7 @@ namespace MyEMSL_MTS_File_Cache_Manager
             return true;
         }
 
-        protected bool ProcessTask(int taskId, out int completionCode, out string completionMessage, out List<int> lstCachedFileIDs)
+        private bool ProcessTask(int taskId, out int completionCode, out string completionMessage, out List<int> lstCachedFileIDs)
         {
             completionCode = 0;
             completionMessage = string.Empty;
@@ -824,17 +824,17 @@ namespace MyEMSL_MTS_File_Cache_Manager
             return true;
         }
 
-        protected void ReportMessage(string message)
+        private void ReportMessage(string message)
         {
             ReportMessage(message, clsLogTools.LogLevels.INFO, logToDB: false);
         }
 
-        protected void ReportMessage(string message, clsLogTools.LogLevels logLevel)
+        private void ReportMessage(string message, clsLogTools.LogLevels logLevel)
         {
             ReportMessage(message, logLevel, logToDB: false);
         }
 
-        protected void ReportMessage(string message, clsLogTools.LogLevels logLevel, bool logToDB)
+        private void ReportMessage(string message, clsLogTools.LogLevels logLevel, bool logToDB)
         {
             clsLogTools.WriteLog(clsLogTools.LoggerTypes.LogFile, logLevel, message);
 
@@ -844,12 +844,12 @@ namespace MyEMSL_MTS_File_Cache_Manager
             OnMessage(new MessageEventArgs(message));
         }
 
-        protected void ReportError(string message)
+        private void ReportError(string message)
         {
             ReportError(message, false);
         }
 
-        protected void ReportError(string message, bool logToDB)
+        private void ReportError(string message, bool logToDB)
         {
             clsLogTools.WriteLog(clsLogTools.LoggerTypes.LogFile, clsLogTools.LogLevels.ERROR, message);
 
@@ -861,7 +861,7 @@ namespace MyEMSL_MTS_File_Cache_Manager
             this.ErrorMessage = string.Copy(message);
         }
 
-        protected int RequestTask()
+        private int RequestTask()
         {
             int taskID = 0;
 
@@ -927,7 +927,7 @@ namespace MyEMSL_MTS_File_Cache_Manager
             return taskID;
         }
 
-        protected int SetTaskComplete(int taskID, int completionCode, string completionMessage, IEnumerable<int> lstCachedFileIDs)
+        private int SetTaskComplete(int taskID, int completionCode, string completionMessage, IEnumerable<int> lstCachedFileIDs)
         {
 
             try
@@ -1041,7 +1041,7 @@ namespace MyEMSL_MTS_File_Cache_Manager
             return success;
         }
 
-        protected bool TinyIntToBool(int value)
+        private bool TinyIntToBool(int value)
         {
             if (value == 0)
                 return false;
