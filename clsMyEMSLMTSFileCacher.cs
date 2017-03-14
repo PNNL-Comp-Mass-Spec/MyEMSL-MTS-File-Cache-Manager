@@ -5,10 +5,11 @@ using System.Data.SqlClient;
 using System.Linq;
 using System.IO;
 using System.Runtime.InteropServices;
+using PRISM;
 
 namespace MyEMSL_MTS_File_Cache_Manager
 {
-    class clsMyEMSLMTSFileCacher
+    class clsMyEMSLMTSFileCacher : clsEventNotifier
     {
         #region "Constants"
 
@@ -62,10 +63,7 @@ namespace MyEMSL_MTS_File_Cache_Manager
 
         private readonly string mLogDBConnectionString;
 
-        private PRISM.DataBase.clsExecuteDatabaseSP m_ExecuteSP;
-
-        private double mPercentComplete;
-        private DateTime mLastProgressUpdateTime;
+        private clsExecuteDatabaseSP m_ExecuteSP;
 
         #endregion
 
@@ -215,7 +213,7 @@ namespace MyEMSL_MTS_File_Cache_Manager
             }
             catch (Exception ex)
             {
-                ReportError("Error in DeleteFolderIfEmpty for " + folderPath + ": " + ex.Message, false);
+                ReportError("Error in DeleteFolderIfEmpty for " + folderPath + ": " + ex.Message, false, ex);
             }
         }
 
@@ -356,7 +354,7 @@ namespace MyEMSL_MTS_File_Cache_Manager
             }
             catch (Exception ex)
             {
-                ReportError("Error in GetFreeDiskSpaceGB for " + cacheFolderPath + ": " + ex.Message, true);
+                ReportError("Error in GetFreeDiskSpaceGB for " + cacheFolderPath + ": " + ex.Message, true, ex);
                 freeSpaceBytes = -1;
             }
 
@@ -407,10 +405,7 @@ namespace MyEMSL_MTS_File_Cache_Manager
 
         private void Initialize()
         {
-            this.ErrorMessage = string.Empty;
-
-            mPercentComplete = 0;
-            mLastProgressUpdateTime = DateTime.UtcNow;
+            ErrorMessage = string.Empty;
 
             // Set up the loggers
             const string logFileName = @"Logs\MyEMSLFileCacher";
@@ -533,7 +528,7 @@ namespace MyEMSL_MTS_File_Cache_Manager
             }
             catch (Exception ex)
             {
-                ReportError("Error in ManageCachedFiles for server " + MTSServer + ": " + ex.Message, true);
+                ReportError("Error in ManageCachedFiles for server " + MTSServer + ": " + ex.Message, true, ex);
                 return false;
             }
 
@@ -575,7 +570,7 @@ namespace MyEMSL_MTS_File_Cache_Manager
             }
             catch (Exception ex)
             {
-                ReportError("Error in PreviewFilesToCache for server " + MTSServer + ": " + ex.Message, true);
+                ReportError("Error in PreviewFilesToCache for server " + MTSServer + ": " + ex.Message, true, ex);
                 return false;
             }
 
@@ -611,10 +606,7 @@ namespace MyEMSL_MTS_File_Cache_Manager
                 };
 
                 // Attach the events
-                reader.ErrorEvent += reader_ErrorEvent;
-                reader.MessageEvent += reader_MessageEvent;
-                reader.ProgressEvent += reader_ProgressEvent;
-
+                RegisterEvents(reader);
 
                 var lstArchiveFiles = reader.FindFilesByDatasetID(datasetID);
                 var lstArchiveFileIDs = new List<Int64>();
@@ -668,10 +660,7 @@ namespace MyEMSL_MTS_File_Cache_Manager
                     // Download the files
 
                     var downloader = new MyEMSLReader.Downloader();
-
-                    downloader.ErrorEvent += reader_ErrorEvent;
-                    downloader.MessageEvent += reader_MessageEvent;
-                    downloader.ProgressEvent += reader_ProgressEvent;
+                    RegisterEvents(downloader);
 
                     downloader.OverwriteMode = MyEMSLReader.Downloader.Overwrite.IfChanged;
 
@@ -704,7 +693,7 @@ namespace MyEMSL_MTS_File_Cache_Manager
             }
             catch (Exception ex)
             {
-                ReportError("Error in ProcessTask for server " + MTSServer + ": " + ex.Message, true);
+                ReportError("Error in ProcessTask for server " + MTSServer + ": " + ex.Message, true, ex);
                 return false;
             }
             
@@ -817,48 +806,33 @@ namespace MyEMSL_MTS_File_Cache_Manager
             }
             catch (Exception ex)
             {
-                ReportError("Error in PurgeOldFiles for server " + MTSServer + ": " + ex.Message, true);
+                ReportError("Error in PurgeOldFiles for server " + MTSServer + ": " + ex.Message, true, ex);
                 return false;
             }
 
             return true;
         }
 
-        private void ReportMessage(string message)
-        {
-            ReportMessage(message, clsLogTools.LogLevels.INFO, logToDB: false);
-        }
-
-        private void ReportMessage(string message, clsLogTools.LogLevels logLevel)
-        {
-            ReportMessage(message, logLevel, logToDB: false);
-        }
-
-        private void ReportMessage(string message, clsLogTools.LogLevels logLevel, bool logToDB)
+        private void ReportMessage(string message, clsLogTools.LogLevels logLevel = clsLogTools.LogLevels.INFO, bool logToDB = false)
         {
             clsLogTools.WriteLog(clsLogTools.LoggerTypes.LogFile, logLevel, message);
 
             if (logToDB)
                 clsLogTools.WriteLog(clsLogTools.LoggerTypes.LogDb, logLevel, message);
 
-            OnMessage(new MessageEventArgs(message));
+            OnStatusEvent(message);
         }
 
-        private void ReportError(string message)
-        {
-            ReportError(message, false);
-        }
-
-        private void ReportError(string message, bool logToDB)
+        private void ReportError(string message, bool logToDB = false, Exception ex = null)
         {
             clsLogTools.WriteLog(clsLogTools.LoggerTypes.LogFile, clsLogTools.LogLevels.ERROR, message);
 
             if (logToDB)
                 clsLogTools.WriteLog(clsLogTools.LoggerTypes.LogDb, clsLogTools.LogLevels.ERROR, message);
 
-            OnErrorMessage(new MessageEventArgs(message));
+            OnErrorEvent(message, ex);
 
-            this.ErrorMessage = string.Copy(message);
+            ErrorMessage = string.Copy(message);
         }
 
         private int RequestTask()
@@ -921,7 +895,7 @@ namespace MyEMSL_MTS_File_Cache_Manager
             }
             catch (Exception ex)
             {
-                ReportError("Error in RequestTask for server " + MTSServer + ": " + ex.Message, true);
+                ReportError("Error in RequestTask for server " + MTSServer + ": " + ex.Message, true, ex);
                 taskID = 0;
             }
 
@@ -970,8 +944,7 @@ namespace MyEMSL_MTS_File_Cache_Manager
             }
             catch (Exception ex)
             {
-                ReportError("Error in SetTaskComplete for server " + MTSServer + ": " + ex.Message, true);
-                taskID = 0;
+                ReportError("Error in SetTaskComplete for server " + MTSServer + ": " + ex.Message, true, ex);
             }
 
             return taskID;
@@ -1053,62 +1026,11 @@ namespace MyEMSL_MTS_File_Cache_Manager
             return true;
         }
 
-        #region "Events"
-
-        public event MessageEventHandler ErrorEvent;
-        public event MessageEventHandler MessageEvent;
-        public event ProgressEventHandler ProgressEvent;
-
-        #endregion
-
         #region "Event Handlers"
 
-
-        private void m_ExecuteSP_DBErrorEvent(string Message)
+        private void m_ExecuteSP_DBErrorEvent(string message)
         {
-            ReportError("Stored procedure execution error: " + Message, true);
-        }
-
-
-        void reader_ErrorEvent(object sender, MyEMSLReader.MessageEventArgs e)
-        {
-            ReportError("MyEMSLReader error: " + e.Message);
-        }
-
-        void reader_MessageEvent(object sender, MyEMSLReader.MessageEventArgs e)
-        {
-            ReportMessage(e.Message);
-        }
-
-        void reader_ProgressEvent(object sender, MyEMSLReader.ProgressEventArgs e)
-        {
-            if (e.PercentComplete > mPercentComplete || DateTime.UtcNow.Subtract(mLastProgressUpdateTime).TotalSeconds >= 30)
-            {
-                if (DateTime.UtcNow.Subtract(mLastProgressUpdateTime).TotalSeconds >= 1)
-                {
-                    Console.WriteLine("Percent complete: " + e.PercentComplete.ToString("0.0") + "%");
-                    mPercentComplete = e.PercentComplete;
-                    mLastProgressUpdateTime = DateTime.UtcNow;
-                }
-            }
-        }
-
-        public void OnErrorMessage(MessageEventArgs e)
-        {
-            if (ErrorEvent != null)
-                ErrorEvent(this, e);
-        }
-
-        public void OnMessage(MessageEventArgs e)
-        {
-            if (MessageEvent != null)
-                MessageEvent(this, e);
-        }
-
-        public void OnProgressUpdate(ProgressEventArgs e)
-        {
-            if (ProgressEvent != null)
-                ProgressEvent(this, e);
+            ReportError("Stored procedure execution error: " + message, true);
         }
 
         #endregion

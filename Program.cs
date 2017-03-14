@@ -18,7 +18,7 @@ namespace MyEMSL_MTS_File_Cache_Manager
     internal static class Program
     {
 
-        public const string PROGRAM_DATE = "November 1, 2016";
+        public const string PROGRAM_DATE = "March 13, 2017";
 
         private static clsLogTools.LogLevels mLogLevel;
 
@@ -27,6 +27,9 @@ namespace MyEMSL_MTS_File_Cache_Manager
         private static int mMinimumCacheFreeSpaceGB;
         private static bool mLocalServerMode;
         private static bool mPreviewMode;
+
+        private static double mPercentComplete;
+        private static DateTime mLastProgressUpdateTime;
 
         public static int Main(string[] args)
         {
@@ -84,11 +87,15 @@ namespace MyEMSL_MTS_File_Cache_Manager
 
                 // Attach the events
                 downloader.ErrorEvent += downloader_ErrorEvent;
-                downloader.MessageEvent += downloader_MessageEvent;
+                downloader.StatusEvent += downloader_StatusEvent;
+                downloader.ProgressUpdate += Downloader_ProgressUpdate;
+
+                mPercentComplete = 0;
+                mLastProgressUpdateTime = DateTime.UtcNow;
 
                 // Initiate processing, which will contact the MTS Server to see if any files need to be cached
                 success = downloader.Start(mPreviewMode);
-                    
+
                 if (!success)
                 {
                     ShowErrorMessage("Error processing cache requests for MTS server " + mMTSServer + ": " + downloader.ErrorMessage);
@@ -165,7 +172,7 @@ namespace MyEMSL_MTS_File_Cache_Manager
                     {
                         if (!int.TryParse(strValue, out mMinimumCacheFreeSpaceGB))
                             ShowErrorMessage("Error converting " + strValue + " to an integer for parameter /FS");
-                    }					
+                    }
                 }
 
 
@@ -293,16 +300,28 @@ namespace MyEMSL_MTS_File_Cache_Manager
 
         #region "Event Handlers"
 
-        static void downloader_ErrorEvent(object sender, MessageEventArgs e)
+        static void downloader_ErrorEvent(string message, Exception ex)
         {
-            ShowErrorMessage(e.Message);
+            ShowErrorMessage(message);
         }
 
-        static void downloader_MessageEvent(object sender, MessageEventArgs e)
+        static void downloader_StatusEvent(string message)
         {
-            Console.WriteLine(e.Message);
+            Console.WriteLine(message);
         }
 
+        static void Downloader_ProgressUpdate(string progressMessage, float percentComplete)
+        {
+            if (percentComplete > mPercentComplete || DateTime.UtcNow.Subtract(mLastProgressUpdateTime).TotalSeconds >= 30)
+            {
+                if (DateTime.UtcNow.Subtract(mLastProgressUpdateTime).TotalSeconds >= 1)
+                {
+                    Console.WriteLine("Percent complete: " + percentComplete.ToString("0.0") + "%");
+                    mPercentComplete = percentComplete;
+                    mLastProgressUpdateTime = DateTime.UtcNow;
+                }
+            }
+        }
         #endregion
 
     }
