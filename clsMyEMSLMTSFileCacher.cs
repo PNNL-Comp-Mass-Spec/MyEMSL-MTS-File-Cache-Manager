@@ -76,13 +76,7 @@ namespace MyEMSL_MTS_File_Cache_Manager
             private set;
         }
 
-        public string MTSConnectionString
-        {
-            get
-            {
-                return "Data Source=" + this.MTSServer + ";Initial Catalog=MT_Main;Integrated Security=SSPI;";
-            }
-        }
+        public string MTSConnectionString => "Data Source=" + MTSServer + ";Initial Catalog=MT_Main;Integrated Security=SSPI;";
 
         public int MinimumCacheFreeSpaceGB
         {
@@ -93,22 +87,14 @@ namespace MyEMSL_MTS_File_Cache_Manager
         public string MTSServer
         {
             get;
-            private set;
         }
 
         public ePerspective Perspective
         {
             get;
-            private set;
         }
 
-        public string ProcessorName
-        {
-            get
-            {
-                return "MyEMSLFileCacher_" + Environment.MachineName;
-            }
-        }
+        public string ProcessorName => "MyEMSLFileCacher_" + Environment.MachineName;
 
 
         /// <summary>
@@ -157,16 +143,16 @@ namespace MyEMSL_MTS_File_Cache_Manager
         {
             if (string.IsNullOrWhiteSpace(serverName))
             {
-                this.Perspective = ePerspective.Server;
-                this.MTSServer = Environment.MachineName;
+                Perspective = ePerspective.Server;
+                MTSServer = Environment.MachineName;
             }
             else
             {
-                this.Perspective = ePerspective.Client;
-                this.MTSServer = serverName;
+                Perspective = ePerspective.Client;
+                MTSServer = serverName;
             }
 
-            this.LogLevel = logLevel;
+            LogLevel = logLevel;
             mLogDBConnectionString = logDbConnectionString;
 
             Initialize();
@@ -223,9 +209,8 @@ namespace MyEMSL_MTS_File_Cache_Manager
 
             if (Convert.IsDBNull(value))
                 return DateTime.Now;
-            else
-                return Convert.ToDateTime(value);
 
+            return Convert.ToDateTime(value);
         }
 
         private int GetDBInt(SqlDataReader reader, string columnName)
@@ -234,9 +219,8 @@ namespace MyEMSL_MTS_File_Cache_Manager
 
             if (Convert.IsDBNull(value))
                 return 0;
-            else
-                return Convert.ToInt32(value);
 
+            return Convert.ToInt32(value);
         }
 
         private string GetDBString(SqlDataReader reader, string columnName)
@@ -245,26 +229,16 @@ namespace MyEMSL_MTS_File_Cache_Manager
 
             if (Convert.IsDBNull(value))
                 return string.Empty;
-            else
-                return Convert.ToString(value);
 
+            return Convert.ToString(value);
         }
-
-        /// <summary>
-        /// Finds the next set of files that would be cached
-        /// </summary>
-        /// <returns></returns>
-        private List<udtFileInfo> GetFilesToCache()
-        {
-            return GetFilesToCache(0);
-        }
-
+    
         /// <summary>
         /// Finds the files to cache for the specified cache task
         /// </summary>
         /// <param name="taskID"></param>
         /// <returns></returns>
-        private List<udtFileInfo> GetFilesToCache(int taskID)
+        private List<udtFileInfo> GetFilesToCache(int taskID = 0)
         {
 
             var lstFiles = new List<udtFileInfo>();
@@ -283,7 +257,7 @@ namespace MyEMSL_MTS_File_Cache_Manager
                              " Dataset_ID IN (SELECT TOP 1 Dataset_ID FROM V_MyEMSL_FileCache WHERE State = 1)";
             }
 
-            using (var cnDB = new SqlConnection(this.MTSConnectionString))
+            using (var cnDB = new SqlConnection(MTSConnectionString))
             {
                 cnDB.Open();
 
@@ -376,7 +350,7 @@ namespace MyEMSL_MTS_File_Cache_Manager
                       " ORDER BY Queued";
 
 
-            using (var cnDB = new SqlConnection(this.MTSConnectionString))
+            using (var cnDB = new SqlConnection(MTSConnectionString))
             {
                 cnDB.Open();
 
@@ -409,7 +383,7 @@ namespace MyEMSL_MTS_File_Cache_Manager
 
             // Set up the loggers
             const string logFileName = @"Logs\MyEMSLFileCacher";
-            clsLogTools.CreateFileLogger(logFileName, this.LogLevel);
+            clsLogTools.CreateFileLogger(logFileName, LogLevel);
 
             clsLogTools.CreateDbLogger(mLogDBConnectionString, "MyEMSLFileCacher: " + Environment.MachineName);
 
@@ -417,11 +391,11 @@ namespace MyEMSL_MTS_File_Cache_Manager
             var msg = "=== Started MyEMSL MTS File Cacher v" + System.Reflection.Assembly.GetExecutingAssembly().GetName().Version + " ===== ";
             clsLogTools.WriteLog(clsLogTools.LoggerTypes.LogFile, clsLogTools.LogLevels.INFO, msg);
 
-            m_ExecuteSP = new PRISM.DataBase.clsExecuteDatabaseSP(this.MTSConnectionString);
+            m_ExecuteSP = new clsExecuteDatabaseSP(MTSConnectionString);
             m_ExecuteSP.DBErrorEvent += m_ExecuteSP_DBErrorEvent;
 
         }
-        
+
         /// <summary>
         /// Examines the free disk space in the cache folder
         /// Deletes old files if the free space is below the minimum
@@ -433,7 +407,7 @@ namespace MyEMSL_MTS_File_Cache_Manager
 
             try
             {
-                if (this.MinimumCacheFreeSpaceGB <= 0)
+                if (MinimumCacheFreeSpaceGB <= 0)
                     return true;
 
                 var cleanupRequired = true;
@@ -469,7 +443,7 @@ namespace MyEMSL_MTS_File_Cache_Manager
 
                         ReportError(
                             "Disk free space is " + currentFreeSpaceGB.ToString("0.0") + " GB, which is below the threshold of " +
-                            this.MinimumCacheFreeSpaceGB + " GB. " +
+                            MinimumCacheFreeSpaceGB + " GB. " +
                             "However, no more files can be purged (none have State = 3 in MT_Main..V_MyEMSL_FileCache)", true);
                         return false;
 
@@ -477,7 +451,7 @@ namespace MyEMSL_MTS_File_Cache_Manager
 
                     if (string.IsNullOrWhiteSpace(cacheFolderPath))
                     {
-                        if (this.Perspective == ePerspective.Server)
+                        if (Perspective == ePerspective.Server)
                         {
                             cacheFolderPath = lstFiles.First().ServerPath;
                             if (string.IsNullOrEmpty(cacheFolderPath))
@@ -498,7 +472,7 @@ namespace MyEMSL_MTS_File_Cache_Manager
                             }
                         }
                     }
-                    
+
                     currentFreeSpaceGB = GetFreeDiskSpaceGB(cacheFolderPath);
 
                     if (currentFreeSpaceGB < 0)
@@ -545,7 +519,7 @@ namespace MyEMSL_MTS_File_Cache_Manager
 
                 if (lstFiles.Count == 0)
                 {
-                    Console.WriteLine(this.MTSServer + " does not have any files that need to be cached");
+                    Console.WriteLine(MTSServer + " does not have any files that need to be cached");
                     return true;
                 }
 
@@ -556,7 +530,7 @@ namespace MyEMSL_MTS_File_Cache_Manager
                 foreach (var udtFile in lstFiles)
                 {
                     string targetPath;
-                    if (this.Perspective == ePerspective.Server)
+                    if (Perspective == ePerspective.Server)
                         targetPath = Path.Combine(udtFile.ServerPath, udtFile.ParentPath);
                     else
                         targetPath = Path.Combine(udtFile.ClientPath, udtFile.ParentPath);
@@ -667,7 +641,7 @@ namespace MyEMSL_MTS_File_Cache_Manager
                     try
                     {
                         string cacheFolderPath;
-                        if (this.Perspective == ePerspective.Server)
+                        if (Perspective == ePerspective.Server)
                             cacheFolderPath = firstFileToCache.ServerPath;
                         else
                             cacheFolderPath = firstFileToCache.ClientPath;
@@ -696,7 +670,7 @@ namespace MyEMSL_MTS_File_Cache_Manager
                 ReportError("Error in ProcessTask for server " + MTSServer + ": " + ex.Message, true, ex);
                 return false;
             }
-            
+
         }
 
         private bool PurgeOldFiles(IEnumerable<udtFileInfo> lstFiles, string cacheFolderPath, double bytesToDeleteGB)
@@ -739,7 +713,7 @@ namespace MyEMSL_MTS_File_Cache_Manager
                         catch (Exception ex)
                         {
                             var logToDB = false;
-                            
+
                             if (errorsLoggedToDB < 50)
                             {
                                 errorsLoggedToDB++;
@@ -763,8 +737,8 @@ namespace MyEMSL_MTS_File_Cache_Manager
                 if (filesDeleted > 0)
                 {
                     var message = "Deleted " + filesDeleted + " files to free up " + BytesToGB(bytesDeleted).ToString("0.0") + " GB in " + cacheFolderPath;
-                    if (this.Perspective == ePerspective.Server)
-                        message += " on " + this.MTSServer;
+                    if (Perspective == ePerspective.Server)
+                        message += " on " + MTSServer;
 
                     ReportMessage(message, clsLogTools.LogLevels.INFO, true);
                 }
@@ -776,7 +750,7 @@ namespace MyEMSL_MTS_File_Cache_Manager
                               " SET State = 5" +
                               " WHERE (Entry_ID IN (" + string.Join(",", lstPurgedFiles) + "))";
 
-                    using (var cnDB = new SqlConnection(this.MTSConnectionString))
+                    using (var cnDB = new SqlConnection(MTSConnectionString))
                     {
                         cnDB.Open();
 
@@ -801,7 +775,7 @@ namespace MyEMSL_MTS_File_Cache_Manager
                     {
                         DeleteFolderIfEmpty(cacheFolderPath, folderPath);
                     }
-                    
+
                 }
             }
             catch (Exception ex)
@@ -851,7 +825,7 @@ namespace MyEMSL_MTS_File_Cache_Manager
                         ParameterDirection.ReturnValue;
 
                     cmd.Parameters.Add(new SqlParameter("@processorName", SqlDbType.VarChar, 128)).Value =
-                        this.ProcessorName;
+                        ProcessorName;
 
                     cmd.Parameters.Add(new SqlParameter("@taskAvailable", SqlDbType.TinyInt)).Direction =
                         ParameterDirection.Output;
@@ -864,7 +838,7 @@ namespace MyEMSL_MTS_File_Cache_Manager
 
                 }
 
-                ReportMessage("Calling " + cmd.CommandText + " on " + this.MTSServer, clsLogTools.LogLevels.DEBUG);
+                ReportMessage("Calling " + cmd.CommandText + " on " + MTSServer, clsLogTools.LogLevels.DEBUG);
 
                 //Execute the SP (retry the call up to 4 times)
                 m_ExecuteSP.TimeoutSeconds = 20;
@@ -878,7 +852,7 @@ namespace MyEMSL_MTS_File_Cache_Manager
                     {
                         taskID = Convert.ToInt32(cmd.Parameters["@taskID"].Value);
 
-                        ReportMessage("Received cache task " + taskID + " from " + this.MTSServer, clsLogTools.LogLevels.INFO);
+                        ReportMessage("Received cache task " + taskID + " from " + MTSServer);
                     }
                     else
                     {
@@ -902,9 +876,8 @@ namespace MyEMSL_MTS_File_Cache_Manager
             return taskID;
         }
 
-        private int SetTaskComplete(int taskID, int completionCode, string completionMessage, IEnumerable<int> lstCachedFileIDs)
+        private void SetTaskComplete(int taskID, int completionCode, string completionMessage, IEnumerable<int> lstCachedFileIDs)
         {
-
             try
             {
                 //Setup for execution of the stored procedure
@@ -916,19 +889,19 @@ namespace MyEMSL_MTS_File_Cache_Manager
                     cmd.Parameters.Add(new SqlParameter("@Return", SqlDbType.Int)).Direction =
                         ParameterDirection.ReturnValue;
 
-                    cmd.Parameters.Add(new SqlParameter("@processorName", SqlDbType.VarChar, 128)).Value = this.ProcessorName;
+                    cmd.Parameters.Add(new SqlParameter("@processorName", SqlDbType.VarChar, 128)).Value = ProcessorName;
                     cmd.Parameters.Add(new SqlParameter("@taskID", SqlDbType.Int)).Value = taskID;
                     cmd.Parameters.Add(new SqlParameter("@CompletionCode", SqlDbType.Int)).Value = completionCode;
                     cmd.Parameters.Add(new SqlParameter("@CompletionMessage", SqlDbType.VarChar, 255)).Value = completionMessage;
 
                     cmd.Parameters.Add(new SqlParameter("@CachedFileIDs", SqlDbType.VarChar, -1)).Value = string.Join(",", lstCachedFileIDs);
-                    
+
                     cmd.Parameters.Add(new SqlParameter("@message", SqlDbType.VarChar, 512)).Direction =
                         ParameterDirection.Output;
 
                 }
 
-                ReportMessage("Calling " + cmd.CommandText + " on " + this.MTSServer, clsLogTools.LogLevels.DEBUG);
+                ReportMessage("Calling " + cmd.CommandText + " on " + MTSServer, clsLogTools.LogLevels.DEBUG);
 
                 //Execute the SP (retry the call up to 4 times)
                 m_ExecuteSP.TimeoutSeconds = 20;
@@ -938,7 +911,6 @@ namespace MyEMSL_MTS_File_Cache_Manager
                 {
                     var Msg = "Error " + resCode + " setting cache task complete: " + (string)cmd.Parameters["@message"].Value;
                     clsLogTools.WriteLog(clsLogTools.LoggerTypes.LogFile, clsLogTools.LogLevels.ERROR, Msg);
-                    taskID = 0;
                 }
 
             }
@@ -947,7 +919,6 @@ namespace MyEMSL_MTS_File_Cache_Manager
                 ReportError("Error in SetTaskComplete for server " + MTSServer + ": " + ex.Message, true, ex);
             }
 
-            return taskID;
         }
 
         /// <summary>
@@ -975,7 +946,7 @@ namespace MyEMSL_MTS_File_Cache_Manager
                 return success;
             }
 
-            if (this.MinimumCacheFreeSpaceGB > 0)
+            if (MinimumCacheFreeSpaceGB > 0)
             {
                 success = ManageCachedFiles();
                 if (!success)
@@ -1012,7 +983,7 @@ namespace MyEMSL_MTS_File_Cache_Manager
 
             if (tasksProcessed == 0)
             {
-                ReportMessage("No tasks found for " + this.MTSServer, clsLogTools.LogLevels.DEBUG);
+                ReportMessage("No tasks found for " + MTSServer, clsLogTools.LogLevels.DEBUG);
             }
 
             return success;
