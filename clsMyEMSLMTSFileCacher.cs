@@ -69,33 +69,17 @@ namespace MyEMSL_MTS_File_Cache_Manager
 
         #region "Properties"
 
-
-        public string ErrorMessage
-        {
-            get;
-            private set;
-        }
+        public string ErrorMessage { get; private set; }
 
         public string MTSConnectionString => "Data Source=" + MTSServer + ";Initial Catalog=MT_Main;Integrated Security=SSPI;";
 
-        public int MinimumCacheFreeSpaceGB
-        {
-            get;
-            set;
-        }
+        public int MinimumCacheFreeSpaceGB { get; set;  }
 
-        public string MTSServer
-        {
-            get;
-        }
+        public string MTSServer { get; }
 
-        public ePerspective Perspective
-        {
-            get;
-        }
+        public ePerspective Perspective { get; }
 
         public string ProcessorName => "MyEMSLFileCacher_" + Environment.MachineName;
-
 
         /// <summary>
         /// Logging level; range is 1-5, where 5 is the most verbose
@@ -106,13 +90,7 @@ namespace MyEMSL_MTS_File_Cache_Manager
         /// WARN = 3,
         /// ERROR = 2,
         /// FATAL = 1</remarks>
-        public clsLogTools.LogLevels LogLevel
-        {
-            get;
-            set;
-        }
-
-        #endregion
+        public clsLogTools.LogLevels LogLevel { get; set; }
 
         public bool TraceMode { get; set; }
 
@@ -223,7 +201,7 @@ namespace MyEMSL_MTS_File_Cache_Manager
 
             return Convert.ToString(value);
         }
-    
+
         /// <summary>
         /// Finds the files to cache for the specified cache task
         /// </summary>
