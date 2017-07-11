@@ -1,5 +1,10 @@
 MyEMSL_MTS_File_Cache_Manager Change Log
 
+Version 1.0.6401; July 11, 2017
+	- Update to .NET 4.6.2
+	- Obtain PRISM.dll and PRISMWin.dll from NuGet
+	- New version of MyEMSLReader.dll that supports the new MyEMSL API
+
 Version 1.0.5959; April 25, 2016
 	- Update to .NET 4.5.1
 
