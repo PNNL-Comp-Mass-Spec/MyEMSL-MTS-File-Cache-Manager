@@ -4,8 +4,8 @@ using System.Data;
 using System.Data.SqlClient;
 using System.Linq;
 using System.IO;
-using System.Runtime.InteropServices;
 using PRISM;
+using PRISMWin;
 
 namespace MyEMSL_MTS_File_Cache_Manager
 {
@@ -114,16 +114,7 @@ namespace MyEMSL_MTS_File_Cache_Manager
 
         #endregion
 
-        #region "Win32 API"
-
-        // Pinvoke for API function
-        [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Auto)]
-        [return: MarshalAs(UnmanagedType.Bool)]
-        public static extern bool GetDiskFreeSpaceEx(
-            string lpDirectoryName,
-            out ulong lpFreeBytesAvailable,
-            out ulong lpTotalNumberOfBytes,
-            out ulong lpTotalNumberOfFreeBytes);
+        public bool TraceMode { get; set; }
 
         #endregion
 
@@ -290,7 +281,7 @@ namespace MyEMSL_MTS_File_Cache_Manager
 
         private double GetFreeDiskSpaceGB(string cacheFolderPath)
         {
-            Int64 freeSpaceBytes;
+            long freeSpaceBytes;
 
             try
             {
@@ -306,13 +297,7 @@ namespace MyEMSL_MTS_File_Cache_Manager
                         folderName += '\\';
                     }
 
-                    ulong free, dummy1, dummy2;
-
-                    if (GetDiskFreeSpaceEx(folderName, out free, out dummy1, out dummy2))
-                    {
-                        freeSpaceBytes = (Int64)free;
-                    }
-                    else
+                    if (!clsDiskInfo.GetDiskFreeSpace(folderName, out freeSpaceBytes, out _, out _))
                     {
                         // Error calling the API
                         ReportError("Error using GetDiskFreeSpaceEx to determine the disk free space of " + folderName, true);
@@ -996,15 +981,6 @@ namespace MyEMSL_MTS_File_Cache_Manager
 
             return true;
         }
-
-        #region "Event Handlers"
-
-        private void m_ExecuteSP_DBErrorEvent(string message)
-        {
-            ReportError("Stored procedure execution error: " + message, true);
-        }
-
-        #endregion
 
     }
 }
