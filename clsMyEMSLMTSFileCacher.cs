@@ -4,6 +4,7 @@ using System.Data;
 using System.Data.SqlClient;
 using System.Linq;
 using System.IO;
+using MyEMSLReader;
 using PRISM;
 using PRISMWin;
 
@@ -172,7 +173,7 @@ namespace MyEMSL_MTS_File_Cache_Manager
             }
         }
 
-        private DateTime GetDBDate(SqlDataReader reader, string columnName)
+        private DateTime GetDBDate(IDataRecord reader, string columnName)
         {
             var value = reader[columnName];
 
@@ -182,7 +183,7 @@ namespace MyEMSL_MTS_File_Cache_Manager
             return Convert.ToDateTime(value);
         }
 
-        private int GetDBInt(SqlDataReader reader, string columnName)
+        private int GetDBInt(IDataRecord reader, string columnName)
         {
             var value = reader[columnName];
 
@@ -192,7 +193,7 @@ namespace MyEMSL_MTS_File_Cache_Manager
             return Convert.ToInt32(value);
         }
 
-        private string GetDBString(SqlDataReader reader, string columnName)
+        private string GetDBString(IDataRecord reader, string columnName)
         {
             var value = reader[columnName];
 
@@ -355,7 +356,7 @@ namespace MyEMSL_MTS_File_Cache_Manager
             clsLogTools.WriteLog(clsLogTools.LoggerTypes.LogFile, clsLogTools.LogLevels.INFO, msg);
 
             m_ExecuteSP = new clsExecuteDatabaseSP(MTSConnectionString);
-            m_ExecuteSP.DBErrorEvent += m_ExecuteSP_DBErrorEvent;
+            RegisterEvents(m_ExecuteSP);
 
         }
 
@@ -547,7 +548,7 @@ namespace MyEMSL_MTS_File_Cache_Manager
                 RegisterEvents(reader);
 
                 var lstArchiveFiles = reader.FindFilesByDatasetID(datasetID);
-                var lstArchiveFileIDs = new List<Int64>();
+                var lstArchiveFileIDs = new Dictionary<long, ArchivedFileInfo>();
 
                 var errorsLoggedToDB = 0;
                 var validFileCountToCache = 0;
@@ -558,6 +559,7 @@ namespace MyEMSL_MTS_File_Cache_Manager
                     var archiveFile = (from item in lstArchiveFiles
                                        where string.Equals(item.SubDirPath, udtFile.ResultsFolderName, StringComparison.InvariantCultureIgnoreCase) &&
                                              string.Equals(item.Filename, udtFile.Filename, StringComparison.InvariantCultureIgnoreCase)
+                                       orderby item.FileID descending
                                        select item).ToList();
 
                     validFileCountToCache++;
@@ -588,7 +590,9 @@ namespace MyEMSL_MTS_File_Cache_Manager
                         continue;
                     }
 
-                    lstArchiveFileIDs.Add(archiveFile.First().FileID);
+                    var firstArchiveFile = archiveFile.First();
+
+                    lstArchiveFileIDs.Add(firstArchiveFile.FileID, firstArchiveFile);
 
                     lstCachedFileIDs.Add(udtFile.EntryID);
                 }
