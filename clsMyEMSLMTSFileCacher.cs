@@ -538,8 +538,9 @@ namespace MyEMSL_MTS_File_Cache_Manager
                 var reader = new MyEMSLReader.Reader
                 {
                     IncludeAllRevisions = false,
+                    MaxFileCount = 10000,
                     ThrowErrors = true,
-                    MaxFileCount = 10000
+                    TraceMode = TraceMode
                 };
 
                 // Attach the events

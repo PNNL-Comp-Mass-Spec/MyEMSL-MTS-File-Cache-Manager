@@ -27,6 +27,7 @@ namespace MyEMSL_MTS_File_Cache_Manager
         private static int mMinimumCacheFreeSpaceGB;
         private static bool mLocalServerMode;
         private static bool mPreviewMode;
+        private static bool mTraceMode;
 
         private static double mPercentComplete;
         private static DateTime mLastProgressUpdateTime;
@@ -42,6 +43,7 @@ namespace MyEMSL_MTS_File_Cache_Manager
             mMinimumCacheFreeSpaceGB = clsMyEMSLMTSFileCacher.DEFAULT_MINIMUM_CACHE_FREE_SPACE_GB;
             mLocalServerMode = false;
             mPreviewMode = false;
+            mTraceMode = false;
 
             try
             {
@@ -82,7 +84,8 @@ namespace MyEMSL_MTS_File_Cache_Manager
 
                 var downloader = new clsMyEMSLMTSFileCacher(mMTSServer, mLogLevel, mLogDBConnectionString)
                 {
-                    MinimumCacheFreeSpaceGB = mMinimumCacheFreeSpaceGB
+                    MinimumCacheFreeSpaceGB = mMinimumCacheFreeSpaceGB,
+                    TraceMode = mTraceMode
                 };
 
                 // Attach the events
@@ -121,7 +124,7 @@ namespace MyEMSL_MTS_File_Cache_Manager
         private static bool SetOptionsUsingCommandLineParameters(clsParseCommandLine objParseCommandLine)
         {
             // Returns True if no problems; otherwise, returns false
-            var lstValidParameters = new List<string> { "Local", "Preview", "LogDB", "FS" };
+            var lstValidParameters = new List<string> { "Local", "Preview", "Trace", "LogDB", "FS" };
 
             try
             {
@@ -153,6 +156,11 @@ namespace MyEMSL_MTS_File_Cache_Manager
                 if (objParseCommandLine.IsParameterPresent("Preview"))
                 {
                     mPreviewMode = true;
+                }
+
+                if (objParseCommandLine.IsParameterPresent("Trace"))
+                {
+                    mTraceMode = true;
                 }
 
                 string strValue;
@@ -231,16 +239,17 @@ namespace MyEMSL_MTS_File_Cache_Manager
                 Console.WriteLine("This program processes the MyEMSL Download Queue in MTS to download requested files");
                 Console.WriteLine();
                 Console.WriteLine("Program syntax #1:" + Environment.NewLine + exeName);
-                Console.WriteLine(" MTS_Server [/Preview] [/LogDB] [/FS:MinimumFreeSpaceGB]");
+                Console.WriteLine(" MTS_Server [/Preview] [/Trace] [/LogDB] [/FS:MinimumFreeSpaceGB]");
                 Console.WriteLine();
                 Console.WriteLine("Program syntax #2:" + Environment.NewLine + exeName);
-                Console.WriteLine(" /Local [/Preview] [/LogDB] [/FS:MinimumFreeSpaceGB]");
+                Console.WriteLine(" /Local [/Preview] [/Trace] [/LogDB] [/FS:MinimumFreeSpaceGB]");
 
                 Console.WriteLine();
                 Console.WriteLine("MTS_Server specifies the MTS server to contact (using database MT_Main)");
                 Console.WriteLine("Alternatively, use /Local to contact MT_Main on the local server running this program");
                 Console.WriteLine();
                 Console.WriteLine("Use /Preview to preview any files that would be uploaded");
+                Console.WriteLine("Use /Trace to show additional log messages");
                 Console.WriteLine();
                 Console.WriteLine("Use /LogDB to override the default connection string for logging messages to a database");
                 Console.WriteLine("The default is /LogDB:" + clsMyEMSLMTSFileCacher.LOG_DB_CONNECTION_STRING);
@@ -257,8 +266,8 @@ namespace MyEMSL_MTS_File_Cache_Manager
                 Console.WriteLine("Website: http://panomics.pnnl.gov/ or http://omics.pnl.gov or http://www.sysbio.org/resources/staff/");
                 Console.WriteLine();
 
-                // Delay for 750 msec in case the user double clicked this file from within Windows Explorer (or started the program via a shortcut)
-                Thread.Sleep(750);
+                // Delay for 1500 msec in case the user double clicked this file from within Windows Explorer (or started the program via a shortcut)
+                Thread.Sleep(1500);
 
             }
             catch (Exception ex)
