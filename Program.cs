@@ -89,8 +89,10 @@ namespace MyEMSL_MTS_File_Cache_Manager
                 };
 
                 // Attach the events
-                downloader.ErrorEvent += downloader_ErrorEvent;
-                downloader.StatusEvent += downloader_StatusEvent;
+                downloader.DebugEvent += Downloader_DebugEvent;
+                downloader.ErrorEvent += Downloader_ErrorEvent;
+                downloader.StatusEvent += Downloader_StatusEvent;
+                downloader.WarningEvent += Downloader_WarningEvent;
                 downloader.ProgressUpdate += Downloader_ProgressUpdate;
 
                 mPercentComplete = 0;
@@ -183,7 +185,6 @@ namespace MyEMSL_MTS_File_Cache_Manager
                     }
                 }
 
-
                 return true;
             }
             catch (Exception ex)
@@ -201,7 +202,9 @@ namespace MyEMSL_MTS_File_Cache_Manager
 
             Console.WriteLine();
             Console.WriteLine(strSeparator);
+            Console.ForegroundColor = ConsoleColor.Red;
             Console.WriteLine(strMessage);
+            Console.ResetColor();
             Console.WriteLine(strSeparator);
             Console.WriteLine();
 
@@ -214,6 +217,7 @@ namespace MyEMSL_MTS_File_Cache_Manager
 
             Console.WriteLine();
             Console.WriteLine(strSeparator);
+            Console.ForegroundColor = ConsoleColor.Red;
             Console.WriteLine(strTitle);
             var strMessage = strTitle + ":";
 
@@ -222,6 +226,7 @@ namespace MyEMSL_MTS_File_Cache_Manager
                 Console.WriteLine("   " + item);
                 strMessage += " " + item;
             }
+            Console.ResetColor();
             Console.WriteLine(strSeparator);
             Console.WriteLine();
 
@@ -293,33 +298,51 @@ namespace MyEMSL_MTS_File_Cache_Manager
             }
         }
 
-        static void ShowErrorMessage(string message, bool pauseAfterError)
-        {
-            Console.WriteLine();
-            Console.WriteLine("===============================================");
-
-            Console.WriteLine(message);
-
-            if (pauseAfterError)
-            {
-                Console.WriteLine("===============================================");
-                Thread.Sleep(1500);
-            }
-        }
-
         #region "Event Handlers"
 
-        static void downloader_ErrorEvent(string message, Exception ex)
+        private static void Downloader_DebugEvent(string strMessage)
         {
-            ShowErrorMessage(message);
+            Console.ForegroundColor = ConsoleColor.DarkGray;
+            Console.WriteLine("  " + strMessage);
+            Console.ResetColor();
         }
 
-        static void downloader_StatusEvent(string message)
+        private static void Downloader_ErrorEvent(string errorMessage, Exception ex)
+        {
+            string formattedError;
+            if (ex == null || errorMessage.EndsWith(ex.Message))
+            {
+                formattedError = errorMessage;
+            }
+            else
+            {
+                formattedError = errorMessage + ": " + ex.Message;
+            }
+
+            ShowErrorMessage(formattedError);
+
+            if (ex != null)
+            {
+                Console.ForegroundColor = ConsoleColor.Cyan;
+                Console.WriteLine(clsStackTraceFormatter.GetExceptionStackTraceMultiLine(ex));
+            }
+
+            Console.ResetColor();
+        }
+
+        private static void Downloader_StatusEvent(string message)
         {
             Console.WriteLine(message);
         }
 
-        static void Downloader_ProgressUpdate(string progressMessage, float percentComplete)
+        private static void Downloader_WarningEvent(string strMessage)
+        {
+            Console.ForegroundColor = ConsoleColor.Yellow;
+            Console.WriteLine(strMessage);
+            Console.ResetColor();
+        }
+
+        private static void Downloader_ProgressUpdate(string progressMessage, float percentComplete)
         {
             if (percentComplete > mPercentComplete || DateTime.UtcNow.Subtract(mLastProgressUpdateTime).TotalSeconds >= 30)
             {
@@ -331,6 +354,7 @@ namespace MyEMSL_MTS_File_Cache_Manager
                 }
             }
         }
+
         #endregion
 
     }
