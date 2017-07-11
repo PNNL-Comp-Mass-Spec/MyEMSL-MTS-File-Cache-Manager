@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading;
-using FileProcessor;
 using PRISM;
 
 namespace MyEMSL_MTS_File_Cache_Manager
@@ -18,7 +17,7 @@ namespace MyEMSL_MTS_File_Cache_Manager
     internal static class Program
     {
 
-        public const string PROGRAM_DATE = "March 13, 2017";
+        public const string PROGRAM_DATE = "July 11, 2017";
 
         private static clsLogTools.LogLevels mLogLevel;
 
@@ -34,7 +33,7 @@ namespace MyEMSL_MTS_File_Cache_Manager
 
         public static int Main(string[] args)
         {
-            var objParseCommandLine = new FileProcessor.clsParseCommandLine();
+            var objParseCommandLine = new clsParseCommandLine();
 
             mLogLevel = clsLogTools.LogLevels.INFO;
 
