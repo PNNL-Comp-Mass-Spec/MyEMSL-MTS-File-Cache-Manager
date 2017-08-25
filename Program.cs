@@ -17,7 +17,7 @@ namespace MyEMSL_MTS_File_Cache_Manager
     internal static class Program
     {
 
-        public const string PROGRAM_DATE = "July 20, 2017";
+        public const string PROGRAM_DATE = "August 24, 2017";
 
         private static clsLogTools.LogLevels mLogLevel;
 
@@ -194,44 +194,28 @@ namespace MyEMSL_MTS_File_Cache_Manager
             return false;
         }
 
-
-        private static void ShowErrorMessage(string strMessage)
+        private static void ShowErrorMessage(string message, Exception ex = null)
         {
-            const string strSeparator = "------------------------------------------------------------------------------";
-
-            Console.WriteLine();
-            Console.WriteLine(strSeparator);
-            Console.ForegroundColor = ConsoleColor.Red;
-            Console.WriteLine(strMessage);
-            Console.ResetColor();
-            Console.WriteLine(strSeparator);
-            Console.WriteLine();
-
-            WriteToErrorStream(strMessage);
+            ConsoleMsgUtils.ShowError(message, ex);
         }
 
-        private static void ShowErrorMessage(string strTitle, IEnumerable<string> items)
+        private static void ShowErrorMessage(string message, IReadOnlyCollection<string> additionalInfo)
         {
-            const string strSeparator = "------------------------------------------------------------------------------";
-
-            Console.WriteLine();
-            Console.WriteLine(strSeparator);
-            Console.ForegroundColor = ConsoleColor.Red;
-            Console.WriteLine(strTitle);
-            var strMessage = strTitle + ":";
-
-            foreach (var item in items)
+            if (additionalInfo == null || additionalInfo.Count == 0)
             {
-                Console.WriteLine("   " + item);
-                strMessage += " " + item;
+                ConsoleMsgUtils.ShowError(message);
+                return;
             }
-            Console.ResetColor();
-            Console.WriteLine(strSeparator);
-            Console.WriteLine();
 
-            WriteToErrorStream(strMessage);
+            var formattedMessage = message + ":";
+
+            foreach (var item in additionalInfo)
+            {
+                formattedMessage += Environment.NewLine + "  " + item;
+            }
+
+            ConsoleMsgUtils.ShowError(formattedMessage, true, false);
         }
-
 
         private static void ShowProgramHelp()
         {
@@ -280,53 +264,17 @@ namespace MyEMSL_MTS_File_Cache_Manager
             }
 
         }
-
-        private static void WriteToErrorStream(string strErrorMessage)
-        {
-            try
-            {
-                using (var swErrorStream = new System.IO.StreamWriter(Console.OpenStandardError()))
-                {
-                    swErrorStream.WriteLine(strErrorMessage);
-                }
-            }
-            // ReSharper disable once EmptyGeneralCatchClause
-            catch
-            {
-                // Ignore errors here
-            }
-        }
-
+        
         #region "Event Handlers"
 
         private static void Downloader_DebugEvent(string strMessage)
         {
-            Console.ForegroundColor = ConsoleColor.DarkGray;
-            Console.WriteLine("  " + strMessage);
-            Console.ResetColor();
+            ConsoleMsgUtils.ShowDebug(strMessage);
         }
 
         private static void Downloader_ErrorEvent(string errorMessage, Exception ex)
         {
-            string formattedError;
-            if (ex == null || errorMessage.EndsWith(ex.Message))
-            {
-                formattedError = errorMessage;
-            }
-            else
-            {
-                formattedError = errorMessage + ": " + ex.Message;
-            }
-
-            ShowErrorMessage(formattedError);
-
-            if (ex != null)
-            {
-                Console.ForegroundColor = ConsoleColor.Cyan;
-                Console.WriteLine(clsStackTraceFormatter.GetExceptionStackTraceMultiLine(ex));
-            }
-
-            Console.ResetColor();
+            ConsoleMsgUtils.ShowError(errorMessage, ex);
         }
 
         private static void Downloader_StatusEvent(string message)
@@ -336,22 +284,20 @@ namespace MyEMSL_MTS_File_Cache_Manager
 
         private static void Downloader_WarningEvent(string strMessage)
         {
-            Console.ForegroundColor = ConsoleColor.Yellow;
-            Console.WriteLine(strMessage);
-            Console.ResetColor();
+            ConsoleMsgUtils.ShowWarning(strMessage);
         }
 
         private static void Downloader_ProgressUpdate(string progressMessage, float percentComplete)
         {
-            if (percentComplete > mPercentComplete || DateTime.UtcNow.Subtract(mLastProgressUpdateTime).TotalSeconds >= 30)
-            {
-                if (DateTime.UtcNow.Subtract(mLastProgressUpdateTime).TotalSeconds >= 1)
-                {
-                    Console.WriteLine("Percent complete: " + percentComplete.ToString("0.0") + "%");
-                    mPercentComplete = percentComplete;
-                    mLastProgressUpdateTime = DateTime.UtcNow;
-                }
-            }
+            if (!(percentComplete > mPercentComplete) && !(DateTime.UtcNow.Subtract(mLastProgressUpdateTime).TotalSeconds >= 30))
+                return;
+
+            if (!(DateTime.UtcNow.Subtract(mLastProgressUpdateTime).TotalSeconds >= 1))
+                return;
+
+            Console.WriteLine("Percent complete: " + percentComplete.ToString("0.0") + "%");
+            mPercentComplete = percentComplete;
+            mLastProgressUpdateTime = DateTime.UtcNow;
         }
 
         #endregion
