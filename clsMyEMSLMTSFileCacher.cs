@@ -940,11 +940,7 @@ namespace MyEMSL_MTS_File_Cache_Manager
                 if (taskID < 1)
                     break;
 
-                int completionCode;
-                string completionMessage;
-                List<int> lstCachedFileIDs;
-
-                success = ProcessTask(taskID, out completionCode, out completionMessage, out lstCachedFileIDs);
+                success = ProcessTask(taskID, out var completionCode, out var completionMessage, out var lstCachedFileIDs);
                 tasksProcessed += 1;
 
                 if (success)

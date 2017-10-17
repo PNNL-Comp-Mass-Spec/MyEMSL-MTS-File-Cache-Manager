@@ -70,8 +70,7 @@ namespace MyEMSL_MTS_File_Cache_Manager
                 }
                 else
                 {
-                    string pendingWindowsUpdateMessage;
-                    var updatesArePending = clsWindowsUpdateStatus.UpdatesArePending(out pendingWindowsUpdateMessage);
+                    var updatesArePending = clsWindowsUpdateStatus.UpdatesArePending(out var pendingWindowsUpdateMessage);
 
                     if (updatesArePending)
                     {
@@ -164,8 +163,7 @@ namespace MyEMSL_MTS_File_Cache_Manager
                     mTraceMode = true;
                 }
 
-                string strValue;
-                if (objParseCommandLine.RetrieveValueForParameter("LogDB", out strValue))
+                if (objParseCommandLine.RetrieveValueForParameter("LogDB", out var strValue))
                 {
                     if (string.IsNullOrWhiteSpace(strValue))
                         ShowErrorMessage("/LogDB does not have a value; not overriding the logging connection string");
