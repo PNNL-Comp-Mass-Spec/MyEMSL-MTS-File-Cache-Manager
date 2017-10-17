@@ -1,5 +1,9 @@
 MyEMSL_MTS_File_Cache_Manager Change Log
 
+Version 1.0.6499; October 17, 2017
+	- Fix DMS connection string
+	- Updated MyEMSLReader
+
 Version 1.0.6401; July 11, 2017
 	- Update to .NET 4.6.2
 	- Obtain PRISM.dll and PRISMWin.dll from NuGet

@@ -17,7 +17,7 @@ namespace MyEMSL_MTS_File_Cache_Manager
     internal static class Program
     {
 
-        public const string PROGRAM_DATE = "August 24, 2017";
+        public const string PROGRAM_DATE = "October 17, 2017";
 
         private static clsLogTools.LogLevels mLogLevel;
 
@@ -199,20 +199,7 @@ namespace MyEMSL_MTS_File_Cache_Manager
 
         private static void ShowErrorMessage(string message, IReadOnlyCollection<string> additionalInfo)
         {
-            if (additionalInfo == null || additionalInfo.Count == 0)
-            {
-                ConsoleMsgUtils.ShowError(message);
-                return;
-            }
-
-            var formattedMessage = message + ":";
-
-            foreach (var item in additionalInfo)
-            {
-                formattedMessage += Environment.NewLine + "  " + item;
-            }
-
-            ConsoleMsgUtils.ShowError(formattedMessage, true, false);
+            ConsoleMsgUtils.ShowErrors(message, additionalInfo);
         }
 
         private static void ShowProgramHelp()
