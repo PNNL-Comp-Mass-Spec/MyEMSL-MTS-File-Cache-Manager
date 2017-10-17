@@ -755,6 +755,17 @@ namespace MyEMSL_MTS_File_Cache_Manager
             return true;
         }
 
+        private void RegisterEvents(MyEMSLBase processingClass)
+        {
+            base.RegisterEvents(processingClass);
+            processingClass.MyEMSLOffline += MyEMSLOfflineHandler;
+        }
+
+        private void MyEMSLOfflineHandler(string message)
+        {
+            OnWarningEvent("MyEMSL is offline; unable to retrieve data: " + message);
+        }
+
         private void ReportMessage(string message, clsLogTools.LogLevels logLevel = clsLogTools.LogLevels.INFO, bool logToDB = false)
         {
             clsLogTools.WriteLog(clsLogTools.LoggerTypes.LogFile, logLevel, message);
