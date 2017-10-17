@@ -14,7 +14,7 @@ namespace MyEMSL_MTS_File_Cache_Manager
     {
         #region "Constants"
 
-        public const string LOG_DB_CONNECTION_STRING = "Data Source=gigasax;Initial Catalog=DMS_Data_Package;Integrated Security=SSPI;";
+        public const string LOG_DB_CONNECTION_STRING = "Data Source=gigasax;Initial Catalog=DMS5;Integrated Security=SSPI;";
         public const int DEFAULT_MINIMUM_CACHE_FREE_SPACE_GB = 75;
 
         private const string SP_NAME_REQUEST_TASK = "RequestMyEMSLCacheTask";
