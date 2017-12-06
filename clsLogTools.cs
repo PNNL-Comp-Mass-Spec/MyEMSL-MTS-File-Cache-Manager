@@ -1,51 +1,101 @@
-﻿using System;
+﻿//*********************************************************************************************************
+// Written by Dave Clark and Matthew Monroe for the US Department of Energy
+// Pacific Northwest National Laboratory, Richland, WA
+// Copyright 2009, Battelle Memorial Institute
+// Created 09/10/2009
+//*********************************************************************************************************
+
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Globalization;
+using System.IO;
+using System.Text.RegularExpressions;
 using log4net;
 using log4net.Appender;
 using log4net.Util.TypeConverters;
-
-//*********************************************************************************************************
-// Written by Dave Clark for the US Department of Energy
-// Pacific Northwest National Laboratory, Richland, WA
-// Copyright 2009, Battelle Memorial Institute
-// Created 01/01/2009
-//
-//*********************************************************************************************************
 
 // This assembly attribute tells Log4Net where to find the config file
 [assembly: log4net.Config.XmlConfigurator(ConfigFile = "Logging.config", Watch = true)]
 
 namespace MyEMSL_MTS_File_Cache_Manager
 {
+    /// <summary>
+    /// Class for handling logging via Log4Net
+    /// </summary>
     public class clsLogTools
     {
-        //*********************************************************************************************************
-        // Class for handling logging via Log4Net
-        //*********************************************************************************************************
 
         #region "Constants"
 
         private const string LOG_FILE_APPENDER = "FileAppender";
 
+        /// <summary>
+        /// Date format for log file names
+        /// </summary>
+        public const string LOG_FILE_DATECODE = "MM-dd-yyyy";
+
+        private const string LOG_FILE_MATCH_SPEC = "??-??-????";
+
+        private const string LOG_FILE_DATE_REGEX = @"(?<Month>\d+)-(?<Day>\d+)-(?<Year>\d{4,4})";
+
+        private const string LOG_FILE_EXTENSION = ".txt";
+
+        private const int OLD_LOG_FILE_AGE_THRESHOLD_DAYS = 32;
+
         #endregion
 
         #region "Enums"
 
+        /// <summary>
+        /// Log levels
+        /// </summary>
         public enum LogLevels
         {
+            /// <summary>
+            /// Debug message
+            /// </summary>
             DEBUG = 5,
+
+            /// <summary>
+            /// Informational message
+            /// </summary>
             INFO = 4,
+
+            /// <summary>
+            /// Warning message
+            /// </summary>
             WARN = 3,
+
+            /// <summary>
+            /// Error message
+            /// </summary>
             ERROR = 2,
+
+            /// <summary>
+            /// Fatal error message
+            /// </summary>
             FATAL = 1
         }
 
+        /// <summary>
+        /// Log types
+        /// </summary>
         public enum LoggerTypes
         {
+            /// <summary>
+            /// Log to a log file
+            /// </summary>
             LogFile,
+
+            /// <summary>
+            /// Log to the database and to the log file
+            /// </summary>
             LogDb,
+
+            /// <summary>
+            /// Log to the system event log and to the log file
+            /// </summary>
             LogSystem
         }
 
@@ -131,11 +181,13 @@ namespace MyEMSL_MTS_File_Cache_Manager
             {
                 case LoggerTypes.LogDb:
                     myLogger = m_DbLogger;
+                    message = System.Net.Dns.GetHostName() + ": " + message;
                     break;
                 case LoggerTypes.LogFile:
                     myLogger = m_FileLogger;
+
                     // Check to determine if a new file should be started
-                    var testFileDate = DateTime.Now.ToString("MM-dd-yyyy");
+                    var testFileDate = DateTime.Now.ToString(LOG_FILE_DATECODE);
                     if (!string.Equals(testFileDate, m_FileDate))
                     {
                         m_FileDate = testFileDate;
@@ -226,9 +278,31 @@ namespace MyEMSL_MTS_File_Cache_Manager
         }
 
         /// <summary>
+        /// Update the log file's base name
+        /// </summary>
+        /// <param name="baseName"></param>
+        /// <remarks>Will append today's date to the base name</remarks>
+        public static void ChangeLogFileBaseName(string baseName)
+        {
+            m_BaseFileName = baseName;
+            ChangeLogFileName();
+        }
+
+        /// <summary>
         /// Changes the base log file name
         /// </summary>
         public static void ChangeLogFileName()
+        {
+            m_FileDate = DateTime.Now.ToString(LOG_FILE_DATECODE);
+            ChangeLogFileName(m_BaseFileName + "_" + m_FileDate + LOG_FILE_EXTENSION);
+        }
+
+        /// <summary>
+        /// Changes the base log file name
+        /// </summary>
+        /// <param name="relativeFilePath">Log file base name and path (relative to program folder)</param>
+        /// <remarks>This method is called by the Mage, Ascore, and Multialign plugins</remarks>
+        public static void ChangeLogFileName(string relativeFilePath)
         {
             // Get a list of appenders
             var appendList = FindAppenders(LOG_FILE_APPENDER);
@@ -241,16 +315,15 @@ namespace MyEMSL_MTS_File_Cache_Manager
             foreach (var selectedAppender in appendList)
             {
                 // Convert the IAppender object to a FileAppender instance
-                var AppenderToChange = selectedAppender as FileAppender;
-                if (AppenderToChange == null)
+                if (!(selectedAppender is FileAppender appenderToChange))
                 {
                     WriteLog(LoggerTypes.LogSystem, LogLevels.ERROR, "Unable to convert appender");
                     return;
                 }
 
                 // Change the file name and activate change
-                AppenderToChange.File = m_BaseFileName + "_" + m_FileDate + ".txt";
-                AppenderToChange.ActivateOptions();
+                appenderToChange.File = relativeFilePath;
+                appenderToChange.ActivateOptions();
             }
         }
 
@@ -264,7 +337,7 @@ namespace MyEMSL_MTS_File_Cache_Manager
 
             // Get a list of the current loggers
             var loggerList = LogManager.GetCurrentLoggers();
-            if (loggerList.GetLength(0) < 1) 
+            if (loggerList.GetLength(0) < 1)
                 return null;
 
             // Create a List of appenders matching the criteria for each logger
@@ -273,7 +346,7 @@ namespace MyEMSL_MTS_File_Cache_Manager
             {
                 foreach (var testAppender in testLogger.Logger.Repository.GetAppenders())
                 {
-                    if (testAppender.Name == appenderName) 
+                    if (testAppender.Name == appenderName)
                         retList.Add(testAppender);
                 }
             }
@@ -337,13 +410,69 @@ namespace MyEMSL_MTS_File_Cache_Manager
         }
 
         /// <summary>
+        /// Look for log files over 32 days old that can be moved into a subdirectory
+        /// </summary>
+        /// <param name="logFilePath"></param>
+        private static void ArchiveOldLogs(string logFilePath)
+        {
+            var targetPath = "??";
+
+            try
+            {
+                var currentLogFile = new FileInfo(logFilePath);
+
+                var matchSpec = "*_" + LOG_FILE_MATCH_SPEC + LOG_FILE_EXTENSION;
+
+                var logDirectory = currentLogFile.Directory;
+                if (logDirectory == null)
+                {
+                    WriteLog(LoggerTypes.LogFile, LogLevels.WARN, "Error archiving old log files; cannot determine the parent directory of " + currentLogFile);
+                    return;
+                }
+
+                var logFiles = logDirectory.GetFiles(matchSpec);
+
+                var matcher = new Regex(LOG_FILE_DATE_REGEX, RegexOptions.Compiled);
+
+                foreach (var logFile in logFiles)
+                {
+                    var match = matcher.Match(logFile.Name);
+
+                    if (!match.Success)
+                        continue;
+
+                    var logFileYear = int.Parse(match.Groups["Year"].Value);
+                    var logFileMonth = int.Parse(match.Groups["Month"].Value);
+                    var logFileDay = int.Parse(match.Groups["Day"].Value);
+
+                    var logDate = new DateTime(logFileYear, logFileMonth, logFileDay);
+
+                    if (DateTime.Now.Subtract(logDate).TotalDays <= OLD_LOG_FILE_AGE_THRESHOLD_DAYS)
+                        continue;
+
+                    var targetDirectory = new DirectoryInfo(Path.Combine(logDirectory.FullName, logFileYear.ToString()));
+                    if (!targetDirectory.Exists)
+                        targetDirectory.Create();
+
+                    targetPath = Path.Combine(targetDirectory.FullName, logFile.Name);
+
+                    logFile.MoveTo(targetPath);
+                }
+            }
+            catch (Exception ex)
+            {
+                WriteLog(LoggerTypes.LogFile, LogLevels.ERROR, "Error moving old log file to " + targetPath, ex);
+            }
+        }
+
+        /// <summary>
         /// Creates a file appender
         /// </summary>
         /// <param name="logFileNameBase">Base name for log file</param>
         /// <returns>A configured file appender</returns>
         private static FileAppender CreateFileAppender(string logFileNameBase)
         {
-            m_FileDate = DateTime.Now.ToString("MM-dd-yyyy");
+            m_FileDate = DateTime.Now.ToString(LOG_FILE_DATECODE);
             m_BaseFileName = logFileNameBase;
 
             var layout = new log4net.Layout.PatternLayout
@@ -355,7 +484,7 @@ namespace MyEMSL_MTS_File_Cache_Manager
             var returnAppender = new FileAppender
             {
                 Name = LOG_FILE_APPENDER,
-                File = m_BaseFileName + "_" + m_FileDate + ".txt",
+                File = m_BaseFileName + "_" + m_FileDate + LOG_FILE_EXTENSION,
                 AppendToFile = true,
                 Layout = layout
             };
@@ -369,12 +498,15 @@ namespace MyEMSL_MTS_File_Cache_Manager
         /// Configures the file logger
         /// </summary>
         /// <param name="logFileName">Base name for log file</param>
-        /// <param name="logLevel">Debug level for file logger</param>
+        /// <param name="logLevel">Debug level for file logger (1-5, 5 being most verbose)</param>
         public static void CreateFileLogger(string logFileName, int logLevel)
         {
             var curLogger = (log4net.Repository.Hierarchy.Logger)m_FileLogger.Logger;
             m_FileAppender = CreateFileAppender(logFileName);
             curLogger.AddAppender(m_FileAppender);
+
+            ArchiveOldLogs(m_FileAppender.File);
+
             SetFileLogLevel(logLevel);
         }
 
@@ -448,7 +580,6 @@ namespace MyEMSL_MTS_File_Cache_Manager
                 Size = 50,
                 Layout = CreateLayout("%level")
             };
-
             returnAppender.AddParameter(typeParam);
 
             // Message parameter
@@ -459,7 +590,6 @@ namespace MyEMSL_MTS_File_Cache_Manager
                 Size = 4000,
                 Layout = CreateLayout("%message")
             };
-
             returnAppender.AddParameter(msgParam);
 
             // PostedBy parameter
@@ -470,7 +600,6 @@ namespace MyEMSL_MTS_File_Cache_Manager
                 Size = 128,
                 Layout = CreateLayout(moduleName)
             };
-
             returnAppender.AddParameter(postByParam);
 
             returnAppender.ActivateOptions();
@@ -490,7 +619,6 @@ namespace MyEMSL_MTS_File_Cache_Manager
             {
                 ConversionPattern = layoutStr
             };
-
             returnLayout.ActivateOptions();
 
             var retItem = (log4net.Layout.IRawLayout)layoutConvert.ConvertFrom(returnLayout);
@@ -501,11 +629,9 @@ namespace MyEMSL_MTS_File_Cache_Manager
             }
 
             return retItem;
-
         }
 
         #endregion
 
     }
 }
-
