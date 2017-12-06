@@ -346,8 +346,8 @@ namespace MyEMSL_MTS_File_Cache_Manager
             ErrorMessage = string.Empty;
 
             // Set up the loggers
-            const string logFileName = @"Logs\MyEMSLFileCacher";
-            clsLogTools.CreateFileLogger(logFileName, LogLevel);
+            const string logFileNameBase = @"Logs\MyEMSLFileCacher";
+            clsLogTools.CreateFileLogger(logFileNameBase, LogLevel);
 
             clsLogTools.CreateDbLogger(mLogDBConnectionString, "MyEMSLFileCacher: " + Environment.MachineName);
 
