@@ -34,7 +34,7 @@ namespace MyEMSL_MTS_File_Cache_Manager
 
         public static int Main(string[] args)
         {
-            var objParseCommandLine = new clsParseCommandLine();
+            var commandLineParser = new clsParseCommandLine();
 
             mLogLevel = BaseLogger.LogLevels.INFO;
 
@@ -49,15 +49,15 @@ namespace MyEMSL_MTS_File_Cache_Manager
             {
                 var success = false;
 
-                if (objParseCommandLine.ParseCommandLine())
+                if (commandLineParser.ParseCommandLine())
                 {
-                    if (SetOptionsUsingCommandLineParameters(objParseCommandLine))
+                    if (SetOptionsUsingCommandLineParameters(commandLineParser))
                         success = true;
                 }
 
                 if (!success ||
-                    objParseCommandLine.NeedToShowHelp ||
-                    objParseCommandLine.ParameterCount + objParseCommandLine.NonSwitchParameterCount == 0 ||
+                    commandLineParser.NeedToShowHelp ||
+                    commandLineParser.ParameterCount + commandLineParser.NonSwitchParameterCount == 0 ||
                     mMTSServer.Length == 0 && !mLocalServerMode)
                 {
                     ShowProgramHelp();
@@ -121,8 +121,7 @@ namespace MyEMSL_MTS_File_Cache_Manager
         {
             return System.Reflection.Assembly.GetExecutingAssembly().GetName().Version + " (" + PROGRAM_DATE + ")";
         }
-
-        private static bool SetOptionsUsingCommandLineParameters(clsParseCommandLine objParseCommandLine)
+        private static bool SetOptionsUsingCommandLineParameters(clsParseCommandLine commandLineParser)
         {
             // Returns True if no problems; otherwise, returns false
             var lstValidParameters = new List<string> { "Local", "Preview", "Trace", "LogDB", "FS" };
@@ -130,10 +129,10 @@ namespace MyEMSL_MTS_File_Cache_Manager
             try
             {
                 // Make sure no invalid parameters are present
-                if (objParseCommandLine.InvalidParametersPresent(lstValidParameters))
+                if (commandLineParser.InvalidParametersPresent(lstValidParameters))
                 {
                     var badArguments = new List<string>();
-                    foreach (var item in objParseCommandLine.InvalidParameters(lstValidParameters))
+                    foreach (var item in commandLineParser.InvalidParameters(lstValidParameters))
                     {
                         badArguments.Add("/" + item);
                     }
@@ -143,28 +142,28 @@ namespace MyEMSL_MTS_File_Cache_Manager
                     return false;
                 }
 
-                // Query objParseCommandLine to see if various parameters are present
-                if (objParseCommandLine.NonSwitchParameterCount > 0)
+                // Query commandLineParser to see if various parameters are present
+                if (commandLineParser.NonSwitchParameterCount > 0)
                 {
-                    mMTSServer = objParseCommandLine.RetrieveNonSwitchParameter(0);
+                    mMTSServer = commandLineParser.RetrieveNonSwitchParameter(0);
                 }
 
-                if (objParseCommandLine.IsParameterPresent("Local"))
+                if (commandLineParser.IsParameterPresent("Local"))
                 {
                     mLocalServerMode = true;
                 }
 
-                if (objParseCommandLine.IsParameterPresent("Preview"))
+                if (commandLineParser.IsParameterPresent("Preview"))
                 {
                     mPreviewMode = true;
                 }
 
-                if (objParseCommandLine.IsParameterPresent("Trace"))
+                if (commandLineParser.IsParameterPresent("Trace"))
                 {
                     mTraceMode = true;
                 }
 
-                if (objParseCommandLine.RetrieveValueForParameter("LogDB", out var strValue))
+                if (commandLineParser.RetrieveValueForParameter("LogDB", out var strValue))
                 {
                     if (string.IsNullOrWhiteSpace(strValue))
                         ShowErrorMessage("/LogDB does not have a value; not overriding the logging connection string");
@@ -172,7 +171,7 @@ namespace MyEMSL_MTS_File_Cache_Manager
                         mLogDBConnectionString = strValue;
                 }
 
-                if (objParseCommandLine.RetrieveValueForParameter("FS", out strValue))
+                if (commandLineParser.RetrieveValueForParameter("FS", out strValue))
                 {
                     if (string.IsNullOrWhiteSpace(strValue))
                         ShowErrorMessage("/FS does not have a value; not overriding the minimum free space");
