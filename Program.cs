@@ -12,13 +12,13 @@ namespace MyEMSL_MTS_File_Cache_Manager
     /// <remarks>
     /// Written by Matthew Monroe for the Department of Energy (PNNL, Richland, WA)
     ///
-    /// E-mail: matthew.monroe@pnnl.gov or matt@alchemistmatt.com
-    /// Website: http://panomics.pnnl.gov/ or http://omics.pnl.gov or http://www.sysbio.org/resources/staff/
+    /// E-mail: matthew.monroe@pnnl.gov or proteomics@pnnl.gov
+    /// Website: https://omics.pnl.gov or https://panomics.pnnl.gov/
     /// </remarks>
     internal static class Program
     {
 
-        public const string PROGRAM_DATE = "December 6, 2017";
+        public const string PROGRAM_DATE = "February 7, 2017";
 
         private static BaseLogger.LogLevels mLogLevel;
 
@@ -231,8 +231,8 @@ namespace MyEMSL_MTS_File_Cache_Manager
                 Console.WriteLine("Version: " + PRISM.FileProcessor.ProcessFilesOrFoldersBase.GetAppVersion(PROGRAM_DATE));
                 Console.WriteLine();
 
-                Console.WriteLine("E-mail: matthew.monroe@pnnl.gov or matt@alchemistmatt.com");
-                Console.WriteLine("Website: http://panomics.pnnl.gov/ or http://omics.pnl.gov or http://www.sysbio.org/resources/staff/");
+                Console.WriteLine("E-mail: matthew.monroe@pnnl.gov or proteomics@pnnl.gov");
+                Console.WriteLine("Website: https://omics.pnl.gov or https://panomics.pnnl.gov/");
                 Console.WriteLine();
 
                 // Delay for 1500 msec in case the user double clicked this file from within Windows Explorer (or started the program via a shortcut)
@@ -245,7 +245,7 @@ namespace MyEMSL_MTS_File_Cache_Manager
             }
 
         }
-        
+
         #region "Event Handlers"
 
         private static void Downloader_DebugEvent(string strMessage)
