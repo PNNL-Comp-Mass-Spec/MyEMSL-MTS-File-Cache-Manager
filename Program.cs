@@ -18,7 +18,7 @@ namespace MyEMSL_MTS_File_Cache_Manager
     internal static class Program
     {
 
-        public const string PROGRAM_DATE = "February 7, 2017";
+        public const string PROGRAM_DATE = "February 8, 2017";
 
         private static BaseLogger.LogLevels mLogLevel;
 
@@ -100,6 +100,8 @@ namespace MyEMSL_MTS_File_Cache_Manager
                 // Initiate processing, which will contact the MTS Server to see if any files need to be cached
                 success = downloader.Start(mPreviewMode);
 
+                LogTools.FlushPendingMessages();
+
                 if (!success)
                 {
                     ShowErrorMessage("Error processing cache requests for MTS server " + mMTSServer + ": " + downloader.ErrorMessage);
@@ -108,6 +110,7 @@ namespace MyEMSL_MTS_File_Cache_Manager
             }
             catch (Exception ex)
             {
+                LogTools.FlushPendingMessages();
                 Console.WriteLine("Error occurred in Program->Main: " + Environment.NewLine + ex.Message);
                 Console.WriteLine(ex.StackTrace);
                 Thread.Sleep(1500);
