@@ -354,7 +354,7 @@ namespace MyEMSL_MTS_File_Cache_Manager
 
             // Make initial log entry
             var msg = "=== Started MyEMSL MTS File Cacher v" + System.Reflection.Assembly.GetExecutingAssembly().GetName().Version + " ===== ";
-            LogTools.WriteLog(LogTools.LoggerTypes.LogFile, BaseLogger.LogLevels.INFO, msg);
+            LogTools.LogMessage(msg);
 
             m_ExecuteSP = new clsExecuteDatabaseSP(MTSConnectionString);
             RegisterEvents(m_ExecuteSP);
@@ -841,8 +841,7 @@ namespace MyEMSL_MTS_File_Cache_Manager
                 }
                 else
                 {
-                    var Msg = "Error " + resCode + " requesting a cache task: " + (string)cmd.Parameters["@message"].Value;
-                    LogTools.WriteLog(LogTools.LoggerTypes.LogFile, BaseLogger.LogLevels.ERROR, Msg);
+                    LogTools.LogError("Error " + resCode + " requesting a cache task: " + (string)cmd.Parameters["@message"].Value);
                     taskID = 0;
                 }
 
@@ -889,8 +888,7 @@ namespace MyEMSL_MTS_File_Cache_Manager
 
                 if (resCode != 0)
                 {
-                    var Msg = "Error " + resCode + " setting cache task complete: " + (string)cmd.Parameters["@message"].Value;
-                    LogTools.WriteLog(LogTools.LoggerTypes.LogFile, BaseLogger.LogLevels.ERROR, Msg);
+                    LogTools.LogError("Error " + resCode + " setting cache task complete: " + (string)cmd.Parameters["@message"].Value);
                 }
 
             }
