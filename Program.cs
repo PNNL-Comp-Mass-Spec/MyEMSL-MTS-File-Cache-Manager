@@ -117,10 +117,6 @@ namespace MyEMSL_MTS_File_Cache_Manager
             return 0;
         }
 
-        private static string GetAppVersion()
-        {
-            return System.Reflection.Assembly.GetExecutingAssembly().GetName().Version + " (" + PROGRAM_DATE + ")";
-        }
         private static bool SetOptionsUsingCommandLineParameters(clsParseCommandLine commandLineParser)
         {
             // Returns True if no problems; otherwise, returns false
@@ -232,7 +228,7 @@ namespace MyEMSL_MTS_File_Cache_Manager
                 Console.WriteLine("Use /FS:0 to disable examining the free disk space");
                 Console.WriteLine();
                 Console.WriteLine("Program written by Matthew Monroe for the Department of Energy (PNNL, Richland, WA) in 2013");
-                Console.WriteLine("Version: " + GetAppVersion());
+                Console.WriteLine("Version: " + PRISM.FileProcessor.ProcessFilesOrFoldersBase.GetAppVersion(PROGRAM_DATE));
                 Console.WriteLine();
 
                 Console.WriteLine("E-mail: matthew.monroe@pnnl.gov or matt@alchemistmatt.com");
