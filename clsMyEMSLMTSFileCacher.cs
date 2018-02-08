@@ -769,20 +769,20 @@ namespace MyEMSL_MTS_File_Cache_Manager
 
         private void ReportMessage(string message, BaseLogger.LogLevels logLevel = BaseLogger.LogLevels.INFO, bool logToDB = false)
         {
-            LogTools.WriteLog(LogTools.LoggerTypes.LogFile, logLevel, message);
-
             if (logToDB)
                 LogTools.WriteLog(LogTools.LoggerTypes.LogDb, logLevel, message);
+            else
+                LogTools.WriteLog(LogTools.LoggerTypes.LogFile, logLevel, message);
 
             OnStatusEvent(message);
         }
 
         private void ReportError(string message, bool logToDB = false, Exception ex = null)
         {
-            LogTools.WriteLog(LogTools.LoggerTypes.LogFile, BaseLogger.LogLevels.ERROR, message);
-
             if (logToDB)
                 LogTools.WriteLog(LogTools.LoggerTypes.LogDb, BaseLogger.LogLevels.ERROR, message);
+            else
+                LogTools.WriteLog(LogTools.LoggerTypes.LogFile, BaseLogger.LogLevels.ERROR, message);
 
             OnErrorEvent(message, ex);
 
