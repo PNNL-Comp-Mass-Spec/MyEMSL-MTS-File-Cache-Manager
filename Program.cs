@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Threading;
 using PRISM;
+using PRISM.Logging;
 
 namespace MyEMSL_MTS_File_Cache_Manager
 {
@@ -19,7 +20,7 @@ namespace MyEMSL_MTS_File_Cache_Manager
 
         public const string PROGRAM_DATE = "December 6, 2017";
 
-        private static clsLogTools.LogLevels mLogLevel;
+        private static BaseLogger.LogLevels mLogLevel;
 
         private static string mMTSServer;
         private static string mLogDBConnectionString;
@@ -35,7 +36,7 @@ namespace MyEMSL_MTS_File_Cache_Manager
         {
             var objParseCommandLine = new clsParseCommandLine();
 
-            mLogLevel = clsLogTools.LogLevels.INFO;
+            mLogLevel = BaseLogger.LogLevels.INFO;
 
             mMTSServer = string.Empty;
             mLogDBConnectionString = clsMyEMSLMTSFileCacher.LOG_DB_CONNECTION_STRING;

@@ -6,6 +6,7 @@ using System.Linq;
 using System.IO;
 using MyEMSLReader;
 using PRISM;
+using PRISM.Logging;
 using PRISMWin;
 
 namespace MyEMSL_MTS_File_Cache_Manager
@@ -91,7 +92,7 @@ namespace MyEMSL_MTS_File_Cache_Manager
         /// WARN = 3,
         /// ERROR = 2,
         /// FATAL = 1</remarks>
-        public clsLogTools.LogLevels LogLevel { get; set; }
+        public BaseLogger.LogLevels LogLevel { get; set; }
 
         public bool TraceMode { get; set; }
 
@@ -101,7 +102,7 @@ namespace MyEMSL_MTS_File_Cache_Manager
         /// Constructor
         /// </summary>
         /// <remarks>If "serverName" is blank, then will auto-set Perspective to ePerspective.Server</remarks>
-        public clsMyEMSLMTSFileCacher(string serverName, clsLogTools.LogLevels logLevel) :
+        public clsMyEMSLMTSFileCacher(string serverName, BaseLogger.LogLevels logLevel) :
             this(serverName, logLevel, LOG_DB_CONNECTION_STRING)
         {
         }
@@ -109,7 +110,7 @@ namespace MyEMSL_MTS_File_Cache_Manager
         /// <summary>
         /// Constructor
         /// </summary>
-        public clsMyEMSLMTSFileCacher(string serverName, clsLogTools.LogLevels logLevel, string logDbConnectionString)
+        public clsMyEMSLMTSFileCacher(string serverName, BaseLogger.LogLevels logLevel, string logDbConnectionString)
         {
             if (string.IsNullOrWhiteSpace(serverName))
             {
@@ -347,13 +348,13 @@ namespace MyEMSL_MTS_File_Cache_Manager
 
             // Set up the loggers
             const string logFileNameBase = @"Logs\MyEMSLFileCacher";
-            clsLogTools.CreateFileLogger(logFileNameBase, LogLevel);
+            LogTools.CreateFileLogger(logFileNameBase, LogLevel);
 
-            clsLogTools.CreateDbLogger(mLogDBConnectionString, "MyEMSLFileCacher: " + Environment.MachineName);
+            LogTools.CreateDbLogger(mLogDBConnectionString, "MyEMSLFileCacher: " + Environment.MachineName);
 
             // Make initial log entry
             var msg = "=== Started MyEMSL MTS File Cacher v" + System.Reflection.Assembly.GetExecutingAssembly().GetName().Version + " ===== ";
-            clsLogTools.WriteLog(clsLogTools.LoggerTypes.LogFile, clsLogTools.LogLevels.INFO, msg);
+            LogTools.WriteLog(LogTools.LoggerTypes.LogFile, BaseLogger.LogLevels.INFO, msg);
 
             m_ExecuteSP = new clsExecuteDatabaseSP(MTSConnectionString);
             RegisterEvents(m_ExecuteSP);
@@ -585,7 +586,7 @@ namespace MyEMSL_MTS_File_Cache_Manager
 
                         ReportMessage(
                             "Could not find file " + Path.Combine(udtFile.ResultsFolderName, udtFile.Filename) + " in MyEMSL for dataset " +
-                            datasetID + " in MyEMSL", clsLogTools.LogLevels.ERROR, logToDB);
+                            datasetID + " in MyEMSL", BaseLogger.LogLevels.ERROR, logToDB);
 
                         continue;
                     }
@@ -708,7 +709,7 @@ namespace MyEMSL_MTS_File_Cache_Manager
                     if (Perspective == ePerspective.Server)
                         message += " on " + MTSServer;
 
-                    ReportMessage(message, clsLogTools.LogLevels.INFO, true);
+                    ReportMessage(message, BaseLogger.LogLevels.INFO, true);
                 }
 
                 if (lstPurgedFiles.Count > 0)
@@ -729,7 +730,7 @@ namespace MyEMSL_MTS_File_Cache_Manager
                         {
                             ReportMessage(
                                 "The number of rows in T_MyEMSL_FileCache updated to state 5 is " + rowsUpdated +
-                                ", which is less than the expected value of " + lstPurgedFiles.Count, clsLogTools.LogLevels.WARN, true);
+                                ", which is less than the expected value of " + lstPurgedFiles.Count, BaseLogger.LogLevels.WARN, true);
                         }
 
                     }
@@ -766,22 +767,22 @@ namespace MyEMSL_MTS_File_Cache_Manager
             OnWarningEvent("MyEMSL is offline; unable to retrieve data: " + message);
         }
 
-        private void ReportMessage(string message, clsLogTools.LogLevels logLevel = clsLogTools.LogLevels.INFO, bool logToDB = false)
+        private void ReportMessage(string message, BaseLogger.LogLevels logLevel = BaseLogger.LogLevels.INFO, bool logToDB = false)
         {
-            clsLogTools.WriteLog(clsLogTools.LoggerTypes.LogFile, logLevel, message);
+            LogTools.WriteLog(LogTools.LoggerTypes.LogFile, logLevel, message);
 
             if (logToDB)
-                clsLogTools.WriteLog(clsLogTools.LoggerTypes.LogDb, logLevel, message);
+                LogTools.WriteLog(LogTools.LoggerTypes.LogDb, logLevel, message);
 
             OnStatusEvent(message);
         }
 
         private void ReportError(string message, bool logToDB = false, Exception ex = null)
         {
-            clsLogTools.WriteLog(clsLogTools.LoggerTypes.LogFile, clsLogTools.LogLevels.ERROR, message);
+            LogTools.WriteLog(LogTools.LoggerTypes.LogFile, BaseLogger.LogLevels.ERROR, message);
 
             if (logToDB)
-                clsLogTools.WriteLog(clsLogTools.LoggerTypes.LogDb, clsLogTools.LogLevels.ERROR, message);
+                LogTools.WriteLog(LogTools.LoggerTypes.LogDb, BaseLogger.LogLevels.ERROR, message);
 
             OnErrorEvent(message, ex);
 
@@ -817,7 +818,7 @@ namespace MyEMSL_MTS_File_Cache_Manager
 
                 }
 
-                ReportMessage("Calling " + cmd.CommandText + " on " + MTSServer, clsLogTools.LogLevels.DEBUG);
+                ReportMessage("Calling " + cmd.CommandText + " on " + MTSServer, BaseLogger.LogLevels.DEBUG);
 
                 //Execute the SP (retry the call up to 4 times)
                 m_ExecuteSP.TimeoutSeconds = 20;
@@ -835,13 +836,13 @@ namespace MyEMSL_MTS_File_Cache_Manager
                     }
                     else
                     {
-                        ReportMessage(cmd.CommandText + " returned taskAvailable = 0 ", clsLogTools.LogLevels.DEBUG);
+                        ReportMessage(cmd.CommandText + " returned taskAvailable = 0 ", BaseLogger.LogLevels.DEBUG);
                     }
                 }
                 else
                 {
                     var Msg = "Error " + resCode + " requesting a cache task: " + (string)cmd.Parameters["@message"].Value;
-                    clsLogTools.WriteLog(clsLogTools.LoggerTypes.LogFile, clsLogTools.LogLevels.ERROR, Msg);
+                    LogTools.WriteLog(LogTools.LoggerTypes.LogFile, BaseLogger.LogLevels.ERROR, Msg);
                     taskID = 0;
                 }
 
@@ -880,7 +881,7 @@ namespace MyEMSL_MTS_File_Cache_Manager
 
                 }
 
-                ReportMessage("Calling " + cmd.CommandText + " on " + MTSServer, clsLogTools.LogLevels.DEBUG);
+                ReportMessage("Calling " + cmd.CommandText + " on " + MTSServer, BaseLogger.LogLevels.DEBUG);
 
                 //Execute the SP (retry the call up to 4 times)
                 m_ExecuteSP.TimeoutSeconds = 20;
@@ -889,7 +890,7 @@ namespace MyEMSL_MTS_File_Cache_Manager
                 if (resCode != 0)
                 {
                     var Msg = "Error " + resCode + " setting cache task complete: " + (string)cmd.Parameters["@message"].Value;
-                    clsLogTools.WriteLog(clsLogTools.LoggerTypes.LogFile, clsLogTools.LogLevels.ERROR, Msg);
+                    LogTools.WriteLog(LogTools.LoggerTypes.LogFile, BaseLogger.LogLevels.ERROR, Msg);
                 }
 
             }
@@ -958,7 +959,7 @@ namespace MyEMSL_MTS_File_Cache_Manager
 
             if (tasksProcessed == 0)
             {
-                ReportMessage("No tasks found for " + MTSServer, clsLogTools.LogLevels.DEBUG);
+                ReportMessage("No tasks found for " + MTSServer, BaseLogger.LogLevels.DEBUG);
             }
 
             return success;
