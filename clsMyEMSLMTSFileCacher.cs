@@ -601,7 +601,6 @@ namespace MyEMSL_MTS_File_Cache_Manager
                 if (lstArchiveFileIDs.Count > 0)
                 {
                     // Download the files
-
                     var downloader = new MyEMSLReader.Downloader();
                     RegisterEvents(downloader);
 
