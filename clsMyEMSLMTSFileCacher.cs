@@ -11,7 +11,7 @@ using PRISMWin;
 
 namespace MyEMSL_MTS_File_Cache_Manager
 {
-    class clsMyEMSLMTSFileCacher : clsEventNotifier
+    class clsMyEMSLMTSFileCacher : EventNotifier
     {
         #region "Constants"
 
@@ -65,7 +65,7 @@ namespace MyEMSL_MTS_File_Cache_Manager
 
         private readonly string mLogDBConnectionString;
 
-        private clsExecuteDatabaseSP m_ExecuteSP;
+        private ExecuteDatabaseSP m_ExecuteSP;
 
         #endregion
 
@@ -277,7 +277,7 @@ namespace MyEMSL_MTS_File_Cache_Manager
                         folderName += '\\';
                     }
 
-                    if (!clsDiskInfo.GetDiskFreeSpace(folderName, out freeSpaceBytes, out _, out _))
+                    if (!DiskInfo.GetDiskFreeSpace(folderName, out freeSpaceBytes, out _, out _))
                     {
                         // Error calling the API
                         ReportError("Error using GetDiskFreeSpaceEx to determine the disk free space of " + folderName, true);
@@ -356,7 +356,7 @@ namespace MyEMSL_MTS_File_Cache_Manager
             var msg = "=== Started MyEMSL MTS File Cacher v" + System.Reflection.Assembly.GetExecutingAssembly().GetName().Version + " ===== ";
             LogTools.LogMessage(msg);
 
-            m_ExecuteSP = new clsExecuteDatabaseSP(MTSConnectionString);
+            m_ExecuteSP = new ExecuteDatabaseSP(MTSConnectionString);
             RegisterEvents(m_ExecuteSP);
 
         }

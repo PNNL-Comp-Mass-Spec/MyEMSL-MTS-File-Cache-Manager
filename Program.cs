@@ -18,7 +18,7 @@ namespace MyEMSL_MTS_File_Cache_Manager
     internal static class Program
     {
 
-        public const string PROGRAM_DATE = "February 22, 2017";
+        public const string PROGRAM_DATE = "September 20, 2018";
 
         private static BaseLogger.LogLevels mLogLevel;
 
@@ -71,7 +71,7 @@ namespace MyEMSL_MTS_File_Cache_Manager
                 }
                 else
                 {
-                    var updatesArePending = clsWindowsUpdateStatus.UpdatesArePending(out var pendingWindowsUpdateMessage);
+                    var updatesArePending = WindowsUpdateStatus.UpdatesArePending(out var pendingWindowsUpdateMessage);
 
                     if (updatesArePending)
                     {
@@ -136,7 +136,7 @@ namespace MyEMSL_MTS_File_Cache_Manager
                         badArguments.Add("/" + item);
                     }
 
-                    ShowErrorMessage("Invalid commmand line parameters", badArguments);
+                    ShowErrorMessage("Invalid command line parameters", badArguments);
 
                     return false;
                 }
