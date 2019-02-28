@@ -18,7 +18,7 @@ namespace MyEMSL_MTS_File_Cache_Manager
     internal static class Program
     {
 
-        public const string PROGRAM_DATE = "September 20, 2018";
+        public const string PROGRAM_DATE = "February 27, 2019";
 
         private static BaseLogger.LogLevels mLogLevel;
 
@@ -231,7 +231,7 @@ namespace MyEMSL_MTS_File_Cache_Manager
                 Console.WriteLine("Use /FS:0 to disable examining the free disk space");
                 Console.WriteLine();
                 Console.WriteLine("Program written by Matthew Monroe for the Department of Energy (PNNL, Richland, WA) in 2013");
-                Console.WriteLine("Version: " + PRISM.FileProcessor.ProcessFilesOrFoldersBase.GetAppVersion(PROGRAM_DATE));
+                Console.WriteLine("Version: " + PRISM.FileProcessor.ProcessFilesOrDirectoriesBase.GetAppVersion(PROGRAM_DATE));
                 Console.WriteLine();
 
                 Console.WriteLine("E-mail: matthew.monroe@pnnl.gov or proteomics@pnnl.gov");
