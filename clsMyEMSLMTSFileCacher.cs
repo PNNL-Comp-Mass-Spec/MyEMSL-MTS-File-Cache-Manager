@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.IO;
 using MyEMSLReader;
@@ -11,6 +12,7 @@ using PRISMWin;
 
 namespace MyEMSL_MTS_File_Cache_Manager
 {
+    [SuppressMessage("ReSharper", "RedundantNameQualifier")]
     class clsMyEMSLMTSFileCacher : EventNotifier
     {
         #region "Constants"
@@ -31,7 +33,7 @@ namespace MyEMSL_MTS_File_Cache_Manager
         /// <remarks>
         /// Server means that this program is running on the MTS server and thus it should use local drive paths (e.g. H:\MyEMSL_Cache\)
         /// Additionally, when using Server mode, the value for MTSServer will be auto-determined based on the computer name
-        /// Client means that this program is running on a separate computer, and thus it should use UNC paths (e.g. \\proteinseqs\MyEMSL_Cache\)
+        /// Client means that this program is running on a separate computer, and thus it should use UNC paths (e.g. \\ProteinSeqs\MyEMSL_Cache\)
         /// </remarks>
         public enum ePerspective
         {
