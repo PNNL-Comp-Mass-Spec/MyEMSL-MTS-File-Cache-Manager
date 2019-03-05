@@ -101,15 +101,10 @@ namespace MyEMSL_MTS_File_Cache_Manager
         /// <summary>
         /// Constructor
         /// </summary>
-        /// <remarks>If "serverName" is blank, then will auto-set Perspective to ePerspective.Server</remarks>
-        public clsMyEMSLMTSFileCacher(string serverName, BaseLogger.LogLevels logLevel) :
-            this(serverName, logLevel, LOG_DB_CONNECTION_STRING)
-        {
-        }
-
-        /// <summary>
-        /// Constructor
-        /// </summary>
+        /// <param name="serverName"></param>
+        /// <param name="logLevel"></param>
+        /// <param name="logDbConnectionString"></param>
+        /// <remarks>If "serverName" is blank, will auto-set Perspective to ePerspective.Server</remarks>
         public clsMyEMSLMTSFileCacher(string serverName, BaseLogger.LogLevels logLevel, string logDbConnectionString)
         {
             if (string.IsNullOrWhiteSpace(serverName))
@@ -896,16 +891,6 @@ namespace MyEMSL_MTS_File_Cache_Manager
                 ReportError("Error in SetTaskComplete for server " + MTSServer + ": " + ex.Message, true, ex);
             }
 
-        }
-
-        /// <summary>
-        /// Initiate processing, which will contact the MTS Server to see if any files need to be cached
-        /// </summary>
-        /// <returns>True if success, false if an error</returns>
-        public bool Start()
-        {
-            var success = Start(false);
-            return success;
         }
 
         /// <summary>
