@@ -1,5 +1,11 @@
 MyEMSL_MTS_File_Cache_Manager Change Log
 
+Version 1.0.7003; March 5, 2019
+	- Obtain SharpZipLib and JayRock.Json from NuGet
+
+Version 1.0.6612; February 7, 2018
+	- Use LogTools, LogMessage, and LogError in PRISM.dll
+
 Version 1.0.6549; December 6, 2017
 	- Synchronize clsLogTools with other projects
 		- Initialize the log file with CreateFileLogger
