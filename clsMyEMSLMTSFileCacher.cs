@@ -8,6 +8,7 @@ using System.IO;
 using MyEMSLReader;
 using PRISM;
 using PRISM.Logging;
+using PRISMDatabaseUtils;
 using PRISMWin;
 
 namespace MyEMSL_MTS_File_Cache_Manager
@@ -67,7 +68,7 @@ namespace MyEMSL_MTS_File_Cache_Manager
 
         private readonly string mLogDBConnectionString;
 
-        private ExecuteDatabaseSP m_ExecuteSP;
+        private IDBTools mDbTools;
 
         #endregion
 
@@ -353,8 +354,8 @@ namespace MyEMSL_MTS_File_Cache_Manager
             var msg = "=== Started MyEMSL MTS File Cacher v" + System.Reflection.Assembly.GetExecutingAssembly().GetName().Version + " ===== ";
             LogTools.LogMessage(msg);
 
-            m_ExecuteSP = new ExecuteDatabaseSP(MTSConnectionString);
-            RegisterEvents(m_ExecuteSP);
+            mDbTools = DbToolsFactory.GetDBTools(MTSConnectionString);
+            RegisterEvents(mDbTools);
 
         }
 
@@ -792,41 +793,27 @@ namespace MyEMSL_MTS_File_Cache_Manager
             try
             {
                 //Setup for execution of the stored procedure
-                var cmd = new SqlCommand();
-                {
-                    cmd.CommandType = CommandType.StoredProcedure;
-                    cmd.CommandText = SP_NAME_REQUEST_TASK;
+                var cmd = mDbTools.CreateCommand(SP_NAME_REQUEST_TASK, CommandType.StoredProcedure);
 
-                    cmd.Parameters.Add(new SqlParameter("@Return", SqlDbType.Int)).Direction =
-                        ParameterDirection.ReturnValue;
-
-                    cmd.Parameters.Add(new SqlParameter("@processorName", SqlDbType.VarChar, 128)).Value =
-                        ProcessorName;
-
-                    cmd.Parameters.Add(new SqlParameter("@taskAvailable", SqlDbType.TinyInt)).Direction =
-                        ParameterDirection.Output;
-
-                    cmd.Parameters.Add(new SqlParameter("@taskID", SqlDbType.Int)).Direction =
-                        ParameterDirection.Output;
-
-                    cmd.Parameters.Add(new SqlParameter("@message", SqlDbType.VarChar, 512)).Direction =
-                        ParameterDirection.Output;
-
-                }
+                mDbTools.AddParameter(cmd, "@Return", SqlType.Int, ParameterDirection.ReturnValue);
+                mDbTools.AddParameter(cmd, "@processorName", SqlType.VarChar, 128, ProcessorName);
+                var taskAvailableParam = mDbTools.AddParameter(cmd, "@taskAvailable", SqlType.TinyInt, ParameterDirection.Output);
+                var taskIdParam = mDbTools.AddParameter(cmd, "@taskID", SqlType.Int, ParameterDirection.Output);
+                var messageParam = mDbTools.AddParameter(cmd, "@message", SqlType.VarChar, 512, ParameterDirection.Output);
 
                 ReportMessage("Calling " + cmd.CommandText + " on " + MTSServer, BaseLogger.LogLevels.DEBUG);
 
                 //Execute the SP (retry the call up to 4 times)
-                m_ExecuteSP.TimeoutSeconds = 20;
-                var resCode = m_ExecuteSP.ExecuteSP(cmd, 4);
+                cmd.CommandTimeout = 20;
+                var resCode = mDbTools.ExecuteSP(cmd, 4);
 
                 if (resCode == 0)
                 {
-                    var taskAvailable = Convert.ToInt16(cmd.Parameters["@taskAvailable"].Value);
+                    var taskAvailable = Convert.ToInt16(taskAvailableParam.Value);
 
                     if (taskAvailable > 0)
                     {
-                        taskID = Convert.ToInt32(cmd.Parameters["@taskID"].Value);
+                        taskID = Convert.ToInt32(taskIdParam.Value);
 
                         ReportMessage("Received cache task " + taskID + " from " + MTSServer);
                     }
@@ -837,7 +824,7 @@ namespace MyEMSL_MTS_File_Cache_Manager
                 }
                 else
                 {
-                    LogTools.LogError("Error " + resCode + " requesting a cache task: " + (string)cmd.Parameters["@message"].Value);
+                    LogTools.LogError("Error " + resCode + " requesting a cache task: " + (string)messageParam.Value);
                     taskID = 0;
                 }
 
@@ -856,35 +843,25 @@ namespace MyEMSL_MTS_File_Cache_Manager
             try
             {
                 //Setup for execution of the stored procedure
-                var cmd = new SqlCommand();
-                {
-                    cmd.CommandType = CommandType.StoredProcedure;
-                    cmd.CommandText = SP_NAME_SET_TASK_COMPLETE;
+                var cmd = mDbTools.CreateCommand(SP_NAME_SET_TASK_COMPLETE, CommandType.StoredProcedure);
 
-                    cmd.Parameters.Add(new SqlParameter("@Return", SqlDbType.Int)).Direction =
-                        ParameterDirection.ReturnValue;
+                mDbTools.AddParameter(cmd, "@Return", SqlType.Int, ParameterDirection.ReturnValue);
+                mDbTools.AddParameter(cmd, "@processorName", SqlType.VarChar, 128, ProcessorName);
+                mDbTools.AddParameter(cmd, "@taskID", SqlType.Int).Value = taskID;
+                mDbTools.AddParameter(cmd, "@CompletionCode", SqlType.Int).Value = completionCode;
+                mDbTools.AddParameter(cmd, "@CompletionMessage", SqlType.VarChar, 255, completionMessage);
+                mDbTools.AddParameter(cmd, "@CachedFileIDs", SqlType.VarChar, -1, string.Join(",", lstCachedFileIDs));
+                var messageParam = mDbTools.AddParameter(cmd, "@message", SqlType.VarChar, 512, ParameterDirection.Output);
 
-                    cmd.Parameters.Add(new SqlParameter("@processorName", SqlDbType.VarChar, 128)).Value = ProcessorName;
-                    cmd.Parameters.Add(new SqlParameter("@taskID", SqlDbType.Int)).Value = taskID;
-                    cmd.Parameters.Add(new SqlParameter("@CompletionCode", SqlDbType.Int)).Value = completionCode;
-                    cmd.Parameters.Add(new SqlParameter("@CompletionMessage", SqlDbType.VarChar, 255)).Value = completionMessage;
-
-                    cmd.Parameters.Add(new SqlParameter("@CachedFileIDs", SqlDbType.VarChar, -1)).Value = string.Join(",", lstCachedFileIDs);
-
-                    cmd.Parameters.Add(new SqlParameter("@message", SqlDbType.VarChar, 512)).Direction =
-                        ParameterDirection.Output;
-
-                }
-
-                ReportMessage("Calling " + cmd.CommandText + " on " + MTSServer, BaseLogger.LogLevels.DEBUG);
+                    ReportMessage("Calling " + cmd.CommandText + " on " + MTSServer, BaseLogger.LogLevels.DEBUG);
 
                 //Execute the SP (retry the call up to 4 times)
-                m_ExecuteSP.TimeoutSeconds = 20;
-                var resCode = m_ExecuteSP.ExecuteSP(cmd, 4);
+                mDbTools.TimeoutSeconds = 20;
+                var resCode = mDbTools.ExecuteSP(cmd, 4);
 
                 if (resCode != 0)
                 {
-                    LogTools.LogError("Error " + resCode + " setting cache task complete: " + (string)cmd.Parameters["@message"].Value);
+                    LogTools.LogError("Error " + resCode + " setting cache task complete: " + (string)messageParam.Value);
                 }
 
             }
