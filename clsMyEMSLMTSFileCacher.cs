@@ -172,36 +172,6 @@ namespace MyEMSL_MTS_File_Cache_Manager
             }
         }
 
-        private DateTime GetDBDate(IDataRecord reader, string columnName)
-        {
-            var value = reader[columnName];
-
-            if (Convert.IsDBNull(value))
-                return DateTime.Now;
-
-            return Convert.ToDateTime(value);
-        }
-
-        private int GetDBInt(IDataRecord reader, string columnName)
-        {
-            var value = reader[columnName];
-
-            if (Convert.IsDBNull(value))
-                return 0;
-
-            return Convert.ToInt32(value);
-        }
-
-        private string GetDBString(IDataRecord reader, string columnName)
-        {
-            var value = reader[columnName];
-
-            if (Convert.IsDBNull(value))
-                return string.Empty;
-
-            return Convert.ToString(value);
-        }
-
         /// <summary>
         /// Finds the files to cache for the specified cache task
         /// </summary>
@@ -226,28 +196,24 @@ namespace MyEMSL_MTS_File_Cache_Manager
                              " Dataset_ID IN (SELECT TOP 1 Dataset_ID FROM V_MyEMSL_FileCache WHERE State = 1)";
             }
 
-            using (var cnDB = new SqlConnection(MTSConnectionString))
+            var success = mDbTools.GetQueryResultsDataTable(sql, out var dataTable);
+            if (success)
             {
-                cnDB.Open();
-
-                var cmd = new SqlCommand(sql, cnDB);
-                var reader = cmd.ExecuteReader();
-
-                while (reader.Read())
+                foreach (DataRow row in dataTable.Rows)
                 {
                     var fileInfo = new udtFileInfo
                     {
-                        EntryID = GetDBInt(reader, "Entry_ID"),
-                        DatasetID = GetDBInt(reader, "Dataset_ID"),
-                        Job = GetDBInt(reader, "Job"),
-                        ClientPath = GetDBString(reader, "Client_Path"),
-                        ServerPath = GetDBString(reader, "Server_Path"),
-                        ParentPath = GetDBString(reader, "Parent_Path").TrimStart('\\'),
-                        DatasetFolder = GetDBString(reader, "Dataset_Folder"),
-                        ResultsFolderName = GetDBString(reader, "Results_Folder_Name"),
-                        Filename = GetDBString(reader, "Filename"),
-                        Queued = GetDBDate(reader, "Queued"),
-                        Optional = TinyIntToBool(GetDBInt(reader, "Optional"))
+                        EntryID = row["Entry_ID"].CastDBVal(0),
+                        DatasetID = row["Dataset_ID"].CastDBVal(0),
+                        Job = row["Job"].CastDBVal(0),
+                        ClientPath = row["Client_Path"].CastDBVal(""),
+                        ServerPath = row["Server_Path"].CastDBVal(""),
+                        ParentPath = row["Parent_Path"].CastDBVal("").TrimStart('\\'),
+                        DatasetFolder = row["Dataset_Folder"].CastDBVal(""),
+                        ResultsFolderName = row["Results_Folder_Name"].CastDBVal(""),
+                        Filename = row["Filename"].CastDBVal(""),
+                        Queued = row["Queued"].CastDBVal(DateTime.Now),
+                        Optional = TinyIntToBool(row["Optional"].CastDBVal(0))
                     };
 
                     lstFiles.Add(fileInfo);
@@ -300,7 +266,6 @@ namespace MyEMSL_MTS_File_Cache_Manager
 
         private List<udtFileInfo> GetOldestCachedFiles(int maxFileCount)
         {
-
             var lstFiles = new List<udtFileInfo>();
 
             if (maxFileCount < 50)
@@ -312,25 +277,20 @@ namespace MyEMSL_MTS_File_Cache_Manager
                       " WHERE State = 3 " +
                       " ORDER BY Queued";
 
-
-            using (var cnDB = new SqlConnection(MTSConnectionString))
+            var success = mDbTools.GetQueryResultsDataTable(sql, out var dataTable);
+            if (success)
             {
-                cnDB.Open();
-
-                var cmd = new SqlCommand(sql, cnDB);
-                var reader = cmd.ExecuteReader();
-
-                while (reader.Read())
+                foreach (DataRow row in dataTable.Rows)
                 {
                     var fileInfo = new udtFileInfo
                     {
-                        EntryID = GetDBInt(reader, "Entry_ID"),
-                        ClientPath = GetDBString(reader, "Client_Path"),
-                        ServerPath = GetDBString(reader, "Server_Path"),
-                        ParentPath = GetDBString(reader, "Parent_Path").TrimStart('\\'),
-                        DatasetFolder = GetDBString(reader, "Dataset_Folder"),
-                        ResultsFolderName = GetDBString(reader, "Results_Folder_Name"),
-                        Filename = GetDBString(reader, "Filename")
+                        EntryID = row["Entry_ID"].CastDBVal(0),
+                        ClientPath = row["Client_Path"].CastDBVal(""),
+                        ServerPath = row["Server_Path"].CastDBVal(""),
+                        ParentPath = row["Parent_Path"].CastDBVal("").TrimStart('\\'),
+                        DatasetFolder = row["Dataset_Folder"].CastDBVal(""),
+                        ResultsFolderName = row["Results_Folder_Name"].CastDBVal(""),
+                        Filename = row["Filename"].CastDBVal("")
                     };
 
                     lstFiles.Add(fileInfo);
