@@ -18,7 +18,7 @@ namespace MyEMSL_MTS_File_Cache_Manager
     internal static class Program
     {
 
-        public const string PROGRAM_DATE = "March 5, 2019";
+        public const string PROGRAM_DATE = "February 25, 2020";
 
         private static BaseLogger.LogLevels mLogLevel;
 
