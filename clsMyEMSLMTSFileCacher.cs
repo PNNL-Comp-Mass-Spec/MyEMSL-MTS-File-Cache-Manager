@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.IO;
 using MyEMSLReader;
@@ -13,8 +12,7 @@ using PRISMWin;
 
 namespace MyEMSL_MTS_File_Cache_Manager
 {
-    [SuppressMessage("ReSharper", "RedundantNameQualifier")]
-    class clsMyEMSLMTSFileCacher : EventNotifier
+    internal class clsMyEMSLMTSFileCacher : EventNotifier
     {
         // Ignore Spelling: Seqs
 
@@ -177,7 +175,6 @@ namespace MyEMSL_MTS_File_Cache_Manager
         /// Finds the files to cache for the specified cache task
         /// </summary>
         /// <param name="taskID"></param>
-        /// <returns></returns>
         private List<udtFileInfo> GetFilesToCache(int taskID = 0)
         {
             var lstFiles = new List<udtFileInfo>();
@@ -213,7 +210,7 @@ namespace MyEMSL_MTS_File_Cache_Manager
                         ResultsFolderName = row["Results_Folder_Name"].CastDBVal(""),
                         Filename = row["Filename"].CastDBVal(""),
                         Queued = row["Queued"].CastDBVal(DateTime.Now),
-                        Optional = TinyIntToBool(row["Optional"].CastDBVal(0))
+                        Optional = IntToBool(row["Optional"].CastDBVal(0))
                     };
 
                     lstFiles.Add(fileInfo);
@@ -321,7 +318,6 @@ namespace MyEMSL_MTS_File_Cache_Manager
         /// Examines the free disk space in the cache folder
         /// Deletes old files if the free space is below the minimum
         /// </summary>
-        /// <returns></returns>
         private bool ManageCachedFiles()
         {
             const int FILE_COUNT_TO_RETRIEVE = 500;
@@ -416,7 +412,6 @@ namespace MyEMSL_MTS_File_Cache_Manager
                     if (!success)
                         return false;
                 }
-
             }
             catch (Exception ex)
             {
@@ -846,7 +841,7 @@ namespace MyEMSL_MTS_File_Cache_Manager
                     break;
 
                 success = ProcessTask(taskID, out var completionCode, out var completionMessage, out var lstCachedFileIDs);
-                tasksProcessed += 1;
+                tasksProcessed++;
 
                 if (success)
                 {
@@ -869,12 +864,9 @@ namespace MyEMSL_MTS_File_Cache_Manager
             return success;
         }
 
-        private bool TinyIntToBool(int value)
+        private bool IntToBool(int value)
         {
-            if (value == 0)
-                return false;
-
-            return true;
+            return value != 0;
         }
     }
 }

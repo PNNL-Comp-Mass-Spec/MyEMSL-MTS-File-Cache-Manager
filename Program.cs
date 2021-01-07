@@ -10,10 +10,12 @@ namespace MyEMSL_MTS_File_Cache_Manager
     /// This program processes the MyEMSL Download Queue in MTS to download requested files
     /// </summary>
     /// <remarks>
-    /// Written by Matthew Monroe for the Department of Energy (PNNL, Richland, WA)
-    ///
+    /// <para>
+    /// Written by Matthew Monroe for the Department of Energy (PNNL, Richland, WA)</para>
+    /// <para>
     /// E-mail: matthew.monroe@pnnl.gov or proteomics@pnnl.gov
     /// Website: https://omics.pnl.gov or https://panomics.pnnl.gov/
+    /// </para>
     /// </remarks>
     internal static class Program
     {
@@ -31,7 +33,7 @@ namespace MyEMSL_MTS_File_Cache_Manager
         private static double mPercentComplete;
         private static DateTime mLastProgressUpdateTime;
 
-        public static int Main(string[] args)
+        public static int Main()
         {
             var commandLineParser = new clsParseCommandLine();
 
@@ -171,7 +173,9 @@ namespace MyEMSL_MTS_File_Cache_Manager
                 if (commandLineParser.RetrieveValueForParameter("FS", out strValue))
                 {
                     if (string.IsNullOrWhiteSpace(strValue))
+                    {
                         ShowErrorMessage("/FS does not have a value; not overriding the minimum free space");
+                    }
                     else
                     {
                         if (!int.TryParse(strValue, out mMinimumCacheFreeSpaceGB))
@@ -194,7 +198,7 @@ namespace MyEMSL_MTS_File_Cache_Manager
             ConsoleMsgUtils.ShowError(message, ex);
         }
 
-        private static void ShowErrorMessage(string message, IReadOnlyCollection<string> additionalInfo)
+        private static void ShowErrorMessage(string message, IEnumerable<string> additionalInfo)
         {
             ConsoleMsgUtils.ShowErrors(message, additionalInfo);
         }
