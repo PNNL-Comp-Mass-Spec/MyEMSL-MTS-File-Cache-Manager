@@ -16,6 +16,8 @@ namespace MyEMSL_MTS_File_Cache_Manager
     [SuppressMessage("ReSharper", "RedundantNameQualifier")]
     class clsMyEMSLMTSFileCacher : EventNotifier
     {
+        // Ignore Spelling: Seqs
+
         #region "Constants"
 
         public const string LOG_DB_CONNECTION_STRING = "Data Source=gigasax;Initial Catalog=DMS5;Integrated Security=SSPI;";
