@@ -123,15 +123,15 @@ namespace MyEMSL_MTS_File_Cache_Manager
         private static bool SetOptionsUsingCommandLineParameters(clsParseCommandLine commandLineParser)
         {
             // Returns True if no problems; otherwise, returns false
-            var lstValidParameters = new List<string> { "Local", "Preview", "Trace", "LogDB", "FS" };
+            var validParameters = new List<string> { "Local", "Preview", "Trace", "LogDB", "FS" };
 
             try
             {
                 // Make sure no invalid parameters are present
-                if (commandLineParser.InvalidParametersPresent(lstValidParameters))
+                if (commandLineParser.InvalidParametersPresent(validParameters))
                 {
                     var badArguments = new List<string>();
-                    foreach (var item in commandLineParser.InvalidParameters(lstValidParameters))
+                    foreach (var item in commandLineParser.InvalidParameters(validParameters))
                     {
                         badArguments.Add("/" + item);
                     }
