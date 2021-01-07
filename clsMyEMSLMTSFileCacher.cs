@@ -61,7 +61,6 @@ namespace MyEMSL_MTS_File_Cache_Manager
             public bool Optional;
         }
 
-
         #endregion
 
         #region "Class variables"
@@ -179,7 +178,6 @@ namespace MyEMSL_MTS_File_Cache_Manager
         /// <returns></returns>
         private List<udtFileInfo> GetFilesToCache(int taskID = 0)
         {
-
             var lstFiles = new List<udtFileInfo>();
 
             var sql = " SELECT Entry_ID, Dataset_ID, Job, Client_Path, Server_Path," +
@@ -253,7 +251,6 @@ namespace MyEMSL_MTS_File_Cache_Manager
                     var diCacheDrive = new DriveInfo(fiCacheFolder.FullName);
                     freeSpaceBytes = diCacheDrive.TotalFreeSpace;
                 }
-
             }
             catch (Exception ex)
             {
@@ -316,7 +313,6 @@ namespace MyEMSL_MTS_File_Cache_Manager
 
             mDbTools = DbToolsFactory.GetDBTools(MTSConnectionString);
             RegisterEvents(mDbTools);
-
         }
 
         /// <summary>
@@ -369,7 +365,6 @@ namespace MyEMSL_MTS_File_Cache_Manager
                             MinimumCacheFreeSpaceGB + " GB. " +
                             "However, no more files can be purged (none have State = 3 in MT_Main..V_MyEMSL_FileCache)", true);
                         return false;
-
                     }
 
                     if (string.IsNullOrWhiteSpace(cacheFolderPath))
@@ -418,9 +413,7 @@ namespace MyEMSL_MTS_File_Cache_Manager
                     var success = PurgeOldFiles(lstFiles, cacheFolderPath, dataToDeleteGB);
                     if (!success)
                         return false;
-
                 }
-
 
             }
             catch (Exception ex)
@@ -459,7 +452,6 @@ namespace MyEMSL_MTS_File_Cache_Manager
                         targetPath = Path.Combine(udtFile.ClientPath, udtFile.ParentPath);
 
                     targetPath = Path.Combine(targetPath, udtFile.DatasetFolder, udtFile.ResultsFolderName, udtFile.Filename);
-
 
                     Console.WriteLine(udtFile.Job + "\t" +
                                       targetPath);
@@ -574,13 +566,11 @@ namespace MyEMSL_MTS_File_Cache_Manager
 
                         cacheFolderPath = Path.Combine(cacheFolderPath, firstFileToCache.ParentPath, firstFileToCache.DatasetFolder);
                         downloader.DownloadFiles(lstArchiveFileIDs, cacheFolderPath);
-
                     }
                     catch (Exception ex)
                     {
                         Console.WriteLine("Exception from downloader: " + ex.Message);
                     }
-
                 }
 
                 if (lstArchiveFileIDs.Count == validFileCountToCache)
@@ -589,14 +579,12 @@ namespace MyEMSL_MTS_File_Cache_Manager
                 completionCode = 2;
                 completionMessage = "Unable to cache all of the requested files: " + lstFilesToCache.Count + " requested vs. " + lstArchiveFileIDs.Count + " actually cached";
                 return false;
-
             }
             catch (Exception ex)
             {
                 ReportError("Error in ProcessTask for server " + MTSServer + ": " + ex.Message, true, ex);
                 return false;
             }
-
         }
 
         private bool PurgeOldFiles(IEnumerable<udtFileInfo> lstFiles, string cacheFolderPath, double bytesToDeleteGB)
@@ -648,7 +636,6 @@ namespace MyEMSL_MTS_File_Cache_Manager
 
                             ReportError("Exception deleting file " + fiFile.FullName + ": " + ex.Message, logToDB);
                         }
-
                     }
 
                     // Add deleted files (and missing files) to lstPurgedFiles
@@ -689,10 +676,8 @@ namespace MyEMSL_MTS_File_Cache_Manager
                                 "The number of rows in T_MyEMSL_FileCache updated to state 5 is " + rowsUpdated +
                                 ", which is less than the expected value of " + lstPurgedFiles.Count, BaseLogger.LogLevels.WARN, true);
                         }
-
                     }
                 }
-
 
                 if (lstParentFolders.Count > 0)
                 {
@@ -701,7 +686,6 @@ namespace MyEMSL_MTS_File_Cache_Manager
                     {
                         DeleteFolderIfEmpty(cacheFolderPath, folderPath);
                     }
-
                 }
             }
             catch (Exception ex)
@@ -787,7 +771,6 @@ namespace MyEMSL_MTS_File_Cache_Manager
                     LogTools.LogError("Error " + resCode + " requesting a cache task: " + (string)messageParam.Value);
                     taskID = 0;
                 }
-
             }
             catch (Exception ex)
             {
@@ -823,13 +806,11 @@ namespace MyEMSL_MTS_File_Cache_Manager
                 {
                     LogTools.LogError("Error " + resCode + " setting cache task complete: " + (string)messageParam.Value);
                 }
-
             }
             catch (Exception ex)
             {
                 ReportError("Error in SetTaskComplete for server " + MTSServer + ": " + ex.Message, true, ex);
             }
-
         }
 
         /// <summary>
@@ -893,6 +874,5 @@ namespace MyEMSL_MTS_File_Cache_Manager
 
             return true;
         }
-
     }
 }

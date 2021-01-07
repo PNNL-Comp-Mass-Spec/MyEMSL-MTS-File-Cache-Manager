@@ -62,7 +62,6 @@ namespace MyEMSL_MTS_File_Cache_Manager
                 {
                     ShowProgramHelp();
                     return -1;
-
                 }
 
                 if (mLocalServerMode)
@@ -240,13 +239,11 @@ namespace MyEMSL_MTS_File_Cache_Manager
 
                 // Delay for 1500 msec in case the user double clicked this file from within Windows Explorer (or started the program via a shortcut)
                 Thread.Sleep(1500);
-
             }
             catch (Exception ex)
             {
                 Console.WriteLine("Error displaying the program syntax: " + ex.Message);
             }
-
         }
 
         #region "Event Handlers"
