@@ -93,7 +93,8 @@ namespace MyEMSL_MTS_File_Cache_Manager
         /// INFO = 4,
         /// WARN = 3,
         /// ERROR = 2,
-        /// FATAL = 1</remarks>
+        /// FATAL = 1
+        /// </remarks>
         public BaseLogger.LogLevels LogLevel { get; set; }
 
         public bool TraceMode { get; set; }
@@ -578,7 +579,7 @@ namespace MyEMSL_MTS_File_Cache_Manager
 
                 completionCode = 2;
                 completionMessage = string.Format(
-                    "Unable to cache all of the requested files: {0} requested vs. {1} actually cached", 
+                    "Unable to cache all of the requested files: {0} requested vs. {1} actually cached",
                     filesToCache.Count, archiveFileIDs.Count);
 
                 return false;

@@ -33,6 +33,9 @@ namespace MyEMSL_MTS_File_Cache_Manager
         private static double mPercentComplete;
         private static DateTime mLastProgressUpdateTime;
 
+        /// <summary>
+        /// Main entry method
+        /// </summary>
         public static int Main()
         {
             var commandLineParser = new clsParseCommandLine();
@@ -120,9 +123,13 @@ namespace MyEMSL_MTS_File_Cache_Manager
             return 0;
         }
 
+        /// <summary>
+        /// Set options using command line parameters
+        /// </summary>
+        /// <param name="commandLineParser"></param>
+        /// <returns>True if no problems; otherwise, returns false</returns>
         private static bool SetOptionsUsingCommandLineParameters(clsParseCommandLine commandLineParser)
         {
-            // Returns True if no problems; otherwise, returns false
             var validParameters = new List<string> { "Local", "Preview", "Trace", "LogDB", "FS" };
 
             try
