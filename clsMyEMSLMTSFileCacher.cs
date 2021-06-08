@@ -14,7 +14,7 @@ namespace MyEMSL_MTS_File_Cache_Manager
 {
     internal class clsMyEMSLMTSFileCacher : EventNotifier
     {
-        // Ignore Spelling: Seqs
+        // Ignore Spelling: downloader, Seqs
 
         #region "Constants"
 
