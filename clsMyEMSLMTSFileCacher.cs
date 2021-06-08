@@ -663,9 +663,9 @@ namespace MyEMSL_MTS_File_Cache_Manager
                 if (purgedFiles.Count > 0)
                 {
                     // Update the purge state for these files using an update query
-                    var sql = " UPDATE T_MyEMSL_FileCache" +
-                              " SET State = 5" +
-                              " WHERE (Entry_ID IN (" + string.Join(",", purgedFiles) + "))";
+                    var sql =
+                        "UPDATE T_MyEMSL_FileCache " +
+                        "SET State = 5 " +
                         "WHERE (Entry_ID IN (" + string.Join(",", purgedFiles) + "))";
 
                     using var cnDB = new SqlConnection(MTSConnectionString);
