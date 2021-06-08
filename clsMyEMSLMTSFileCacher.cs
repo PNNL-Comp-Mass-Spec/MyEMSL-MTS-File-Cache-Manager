@@ -666,20 +666,20 @@ namespace MyEMSL_MTS_File_Cache_Manager
                     var sql = " UPDATE T_MyEMSL_FileCache" +
                               " SET State = 5" +
                               " WHERE (Entry_ID IN (" + string.Join(",", purgedFiles) + "))";
+                        "WHERE (Entry_ID IN (" + string.Join(",", purgedFiles) + "))";
 
-                    using (var cnDB = new SqlConnection(MTSConnectionString))
+                    using var cnDB = new SqlConnection(MTSConnectionString);
+
+                    cnDB.Open();
+
+                    var cmd = new SqlCommand(sql, cnDB);
+                    var rowsUpdated = cmd.ExecuteNonQuery();
+
+                    if (rowsUpdated < purgedFiles.Count)
                     {
-                        cnDB.Open();
-
-                        var cmd = new SqlCommand(sql, cnDB);
-                        var rowsUpdated = cmd.ExecuteNonQuery();
-
-                        if (rowsUpdated < purgedFiles.Count)
-                        {
-                            ReportMessage(
-                                "The number of rows in T_MyEMSL_FileCache updated to state 5 is " + rowsUpdated +
-                                ", which is less than the expected value of " + purgedFiles.Count, BaseLogger.LogLevels.WARN, true);
-                        }
+                        ReportMessage(
+                            "The number of rows in T_MyEMSL_FileCache updated to state 5 is " + rowsUpdated +
+                            ", which is less than the expected value of " + purgedFiles.Count, BaseLogger.LogLevels.WARN, true);
                     }
                 }
 
