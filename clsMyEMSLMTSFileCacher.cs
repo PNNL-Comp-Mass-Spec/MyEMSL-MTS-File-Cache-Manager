@@ -305,7 +305,11 @@ namespace MyEMSL_MTS_File_Cache_Manager
             const string logFileNameBase = @"Logs\MyEMSLFileCacher";
             LogTools.CreateFileLogger(logFileNameBase, LogLevel);
 
-            LogTools.CreateDbLogger(mLogDBConnectionString, "MyEMSLFileCacher: " + Environment.MachineName);
+            var hostName = System.Net.Dns.GetHostName();
+            var applicationName = "MyEMSLFileCacher_" + hostName;
+            var dbLoggerConnectionString = DbToolsFactory.AddApplicationNameToConnectionString(mLogDBConnectionString, applicationName);
+
+            LogTools.CreateDbLogger(dbLoggerConnectionString, "MyEMSLFileCacher: " + hostName);
 
             // Make initial log entry
             var msg = "=== Started MyEMSL MTS File Cacher v" + System.Reflection.Assembly.GetExecutingAssembly().GetName().Version + " ===== ";
