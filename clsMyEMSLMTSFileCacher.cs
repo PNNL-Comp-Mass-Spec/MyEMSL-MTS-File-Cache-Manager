@@ -306,16 +306,18 @@ namespace MyEMSL_MTS_File_Cache_Manager
             LogTools.CreateFileLogger(logFileNameBase, LogLevel);
 
             var hostName = System.Net.Dns.GetHostName();
-            var applicationName = "MyEMSLFileCacher_" + hostName;
-            var dbLoggerConnectionString = DbToolsFactory.AddApplicationNameToConnectionString(mLogDBConnectionString, applicationName);
+
+            var dbLoggerConnectionString = DbToolsFactory.AddApplicationNameToConnectionString(mLogDBConnectionString, "MyEMSLMTSFileCacher");
 
             LogTools.CreateDbLogger(dbLoggerConnectionString, "MyEMSLFileCacher: " + hostName);
 
             // Make initial log entry
-            var msg = "=== Started MyEMSL MTS File Cacher v" + System.Reflection.Assembly.GetExecutingAssembly().GetName().Version + " ===== ";
+            var msg = "=== Started MyEMSL MTS File Cacher v" + System.Reflection.Assembly.GetExecutingAssembly().GetName().Version + " === ";
             LogTools.LogMessage(msg);
 
-            mDbTools = DbToolsFactory.GetDBTools(MTSConnectionString);
+            var connectionStringToUse = DbToolsFactory.AddApplicationNameToConnectionString(MTSConnectionString, "MyEMSLMTSFileCacher");
+
+            mDbTools = DbToolsFactory.GetDBTools(connectionStringToUse);
             RegisterEvents(mDbTools);
         }
 
@@ -672,12 +674,9 @@ namespace MyEMSL_MTS_File_Cache_Manager
                         "SET State = 5 " +
                         "WHERE (Entry_ID IN (" + string.Join(",", purgedFiles) + "))";
 
-                    using var cnDB = new SqlConnection(MTSConnectionString);
+                    var sqlCommand = mDbTools.CreateCommand(sql);
 
-                    cnDB.Open();
-
-                    var cmd = new SqlCommand(sql, cnDB);
-                    var rowsUpdated = cmd.ExecuteNonQuery();
+                    var rowsUpdated = sqlCommand.ExecuteNonQuery();
 
                     if (rowsUpdated < purgedFiles.Count)
                     {
