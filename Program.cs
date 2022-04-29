@@ -239,7 +239,7 @@ namespace MyEMSL_MTS_File_Cache_Manager
                 Console.WriteLine("The default is /FS:" + clsMyEMSLMTSFileCacher.DEFAULT_MINIMUM_CACHE_FREE_SPACE_GB);
                 Console.WriteLine("Use /FS:0 to disable examining the free disk space");
                 Console.WriteLine();
-                Console.WriteLine("Program written by Matthew Monroe for the Department of Energy (PNNL, Richland, WA) in 2013");
+                Console.WriteLine("Program written by Matthew Monroe for the Department of Energy (PNNL, Richland, WA)");
                 Console.WriteLine("Version: " + PRISM.FileProcessor.ProcessFilesOrDirectoriesBase.GetAppVersion(PROGRAM_DATE));
                 Console.WriteLine();
 
