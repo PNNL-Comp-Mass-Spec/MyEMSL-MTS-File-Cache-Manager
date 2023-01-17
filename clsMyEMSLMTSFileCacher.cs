@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Data.SqlClient;
 using System.Linq;
 using System.IO;
 using MyEMSLReader;
@@ -494,7 +493,7 @@ namespace MyEMSL_MTS_File_Cache_Manager
                 var firstFileToCache = filesToCache.First();
                 var datasetID = firstFileToCache.DatasetID;
 
-                var reader = new MyEMSLReader.Reader
+                var reader = new Reader
                 {
                     IncludeAllRevisions = false,
                     MaxFileCount = 10000,
@@ -558,10 +557,10 @@ namespace MyEMSL_MTS_File_Cache_Manager
                 if (archiveFileIDs.Count > 0)
                 {
                     // Download the files
-                    var downloader = new MyEMSLReader.Downloader();
+                    var downloader = new Downloader();
                     RegisterEvents(downloader);
 
-                    downloader.OverwriteMode = MyEMSLReader.Downloader.Overwrite.IfChanged;
+                    downloader.OverwriteMode = Downloader.Overwrite.IfChanged;
 
                     try
                     {
