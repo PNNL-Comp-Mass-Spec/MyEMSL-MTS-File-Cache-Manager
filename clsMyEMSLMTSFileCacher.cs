@@ -179,8 +179,8 @@ namespace MyEMSL_MTS_File_Cache_Manager
         {
             var filesToCache = new List<udtFileInfo>();
 
-            var sql = " SELECT Entry_ID, Dataset_ID, Job, Client_Path, Server_Path," +
-                      " Parent_Path, Dataset_Folder, Results_Folder_Name, Filename, Queued, Optional" +
+            var sql = " SELECT entry_id, dataset_id, job, client_path, server_path," +
+                      "        parent_path, dataset_folder, results_folder_name, filename, queued, optional" +
                       " FROM V_MyEMSL_FileCache";
 
             if (taskID > 0)
@@ -190,27 +190,33 @@ namespace MyEMSL_MTS_File_Cache_Manager
             else
             {
                 sql += " WHERE State = 1 AND " +
-                             " Dataset_ID IN (SELECT TOP 1 Dataset_ID FROM V_MyEMSL_FileCache WHERE State = 1)";
+                       "       Dataset_ID IN (SELECT Dataset_ID " +
+                                            " FROM V_MyEMSL_FileCache" +
+                                            " WHERE State = 1" +
+                                            " ORDER BY Entry_Id" +
+                                            " OFFSET 0 ROWS" +
+                                            " FETCH FIRST 1 ROW ONLY)";
             }
 
             var success = mDbTools.GetQueryResultsDataTable(sql, out var dataTable);
+
             if (success)
             {
                 foreach (DataRow row in dataTable.Rows)
                 {
                     var fileInfo = new udtFileInfo
                     {
-                        EntryID = row["Entry_ID"].CastDBVal(0),
-                        DatasetID = row["Dataset_ID"].CastDBVal(0),
-                        Job = row["Job"].CastDBVal(0),
-                        ClientPath = row["Client_Path"].CastDBVal(""),
-                        ServerPath = row["Server_Path"].CastDBVal(""),
-                        ParentPath = row["Parent_Path"].CastDBVal("").TrimStart('\\'),
-                        DatasetFolder = row["Dataset_Folder"].CastDBVal(""),
-                        ResultsFolderName = row["Results_Folder_Name"].CastDBVal(""),
-                        Filename = row["Filename"].CastDBVal(""),
-                        Queued = row["Queued"].CastDBVal(DateTime.Now),
-                        Optional = IntToBool(row["Optional"].CastDBVal(0))
+                        EntryID = row["entry_id"].CastDBVal(0),
+                        DatasetID = row["dataset_id"].CastDBVal(0),
+                        Job = row["job"].CastDBVal(0),
+                        ClientPath = row["client_path"].CastDBVal(""),
+                        ServerPath = row["server_path"].CastDBVal(""),
+                        ParentPath = row["parent_path"].CastDBVal("").TrimStart('\\'),
+                        DatasetFolder = row["dataset_folder"].CastDBVal(""),
+                        ResultsFolderName = row["results_folder_name"].CastDBVal(""),
+                        Filename = row["filename"].CastDBVal(""),
+                        Queued = row["queued"].CastDBVal(DateTime.Now),
+                        Optional = IntToBool(row["optional"].CastDBVal(0))
                     };
 
                     filesToCache.Add(fileInfo);
@@ -267,11 +273,13 @@ namespace MyEMSL_MTS_File_Cache_Manager
             if (maxFileCount < 50)
                 maxFileCount = 50;
 
-            var sql = "SELECT TOP " + maxFileCount +
-                      " Entry_ID, Client_Path, Server_Path, Parent_Path, Dataset_Folder, Results_Folder_Name, Filename" +
+            var sql = " SELECT entry_id, client_path, server_path, parent_path, dataset_folder, results_folder_name, filename" +
                       " FROM V_MyEMSL_FileCache " +
                       " WHERE State = 3 " +
-                      " ORDER BY Queued";
+                      " ORDER BY Queued " +
+                      " OFFSET 0 ROWS " +
+                      " FETCH FIRST " + maxFileCount + " ROWS ONLY ";
+
 
             var success = mDbTools.GetQueryResultsDataTable(sql, out var dataTable);
             if (success)
@@ -280,13 +288,13 @@ namespace MyEMSL_MTS_File_Cache_Manager
                 {
                     var fileInfo = new udtFileInfo
                     {
-                        EntryID = row["Entry_ID"].CastDBVal(0),
-                        ClientPath = row["Client_Path"].CastDBVal(""),
-                        ServerPath = row["Server_Path"].CastDBVal(""),
-                        ParentPath = row["Parent_Path"].CastDBVal("").TrimStart('\\'),
-                        DatasetFolder = row["Dataset_Folder"].CastDBVal(""),
-                        ResultsFolderName = row["Results_Folder_Name"].CastDBVal(""),
-                        Filename = row["Filename"].CastDBVal("")
+                        EntryID = row["entry_id"].CastDBVal(0),
+                        ClientPath = row["client_path"].CastDBVal(""),
+                        ServerPath = row["server_path"].CastDBVal(""),
+                        ParentPath = row["parent_path"].CastDBVal("").TrimStart('\\'),
+                        DatasetFolder = row["dataset_folder"].CastDBVal(""),
+                        ResultsFolderName = row["results_folder_name"].CastDBVal(""),
+                        Filename = row["filename"].CastDBVal("")
                     };
 
                     oldestCachedFiles.Add(fileInfo);
