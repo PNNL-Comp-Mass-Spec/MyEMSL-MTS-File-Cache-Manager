@@ -280,8 +280,8 @@ namespace MyEMSL_MTS_File_Cache_Manager
                       " OFFSET 0 ROWS " +
                       " FETCH FIRST " + maxFileCount + " ROWS ONLY ";
 
-
             var success = mDbTools.GetQueryResultsDataTable(sql, out var dataTable);
+
             if (success)
             {
                 foreach (DataRow row in dataTable.Rows)
@@ -796,7 +796,7 @@ namespace MyEMSL_MTS_File_Cache_Manager
             }
             catch (Exception ex)
             {
-                ReportError("Error in RequestTask for server " + MTSServer + ": " + ex.Message, true, ex);
+                ReportError(string.Format("Error in RequestTask for server {0}: {1}", MTSServer, ex.Message), true, ex);
                 taskID = 0;
             }
 
@@ -836,7 +836,8 @@ namespace MyEMSL_MTS_File_Cache_Manager
             }
             catch (Exception ex)
             {
-                ReportError("Error in SetTaskComplete for server " + MTSServer + ": " + ex.Message, true, ex);
+                ReportError(
+                    string.Format("Error in SetTaskComplete for server {0}: {1}", MTSServer, ex.Message), true, ex);
             }
         }
 
