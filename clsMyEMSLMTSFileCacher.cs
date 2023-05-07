@@ -761,9 +761,9 @@ namespace MyEMSL_MTS_File_Cache_Manager
                 var returnParam = mDbTools.AddParameter(cmd, "@Return", SqlType.Int, ParameterDirection.ReturnValue);
 
                 mDbTools.AddParameter(cmd, "@processorName", SqlType.VarChar, 128, ProcessorName);
-                var taskAvailableParam = mDbTools.AddParameter(cmd, "@taskAvailable", SqlType.TinyInt, ParameterDirection.Output);
-                var taskIdParam = mDbTools.AddParameter(cmd, "@taskID", SqlType.Int, ParameterDirection.Output);
-                var messageParam = mDbTools.AddParameter(cmd, "@message", SqlType.VarChar, 512, ParameterDirection.Output);
+                var taskAvailableParam = mDbTools.AddParameter(cmd, "@taskAvailable", SqlType.TinyInt, ParameterDirection.InputOutput);
+                var taskIdParam = mDbTools.AddParameter(cmd, "@taskID", SqlType.Int, ParameterDirection.InputOutput);
+                var messageParam = mDbTools.AddParameter(cmd, "@message", SqlType.VarChar, 512, ParameterDirection.InputOutput);
 
                 ReportMessage("Calling " + cmd.CommandText + " on " + MTSServer, BaseLogger.LogLevels.DEBUG);
 
@@ -819,7 +819,7 @@ namespace MyEMSL_MTS_File_Cache_Manager
                 mDbTools.AddParameter(cmd, "@CompletionCode", SqlType.Int).Value = completionCode;
                 mDbTools.AddParameter(cmd, "@CompletionMessage", SqlType.VarChar, 255, completionMessage);
                 mDbTools.AddParameter(cmd, "@CachedFileIDs", SqlType.VarChar, -1, string.Join(",", cachedFileIDs));
-                var messageParam = mDbTools.AddParameter(cmd, "@message", SqlType.VarChar, 512, ParameterDirection.Output);
+                var messageParam = mDbTools.AddParameter(cmd, "@message", SqlType.VarChar, 512, ParameterDirection.InputOutput);
 
                     ReportMessage("Calling " + cmd.CommandText + " on " + MTSServer, BaseLogger.LogLevels.DEBUG);
 
