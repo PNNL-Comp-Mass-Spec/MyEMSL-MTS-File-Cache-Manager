@@ -756,7 +756,10 @@ namespace MyEMSL_MTS_File_Cache_Manager
                 //Setup for execution of the stored procedure
                 var cmd = mDbTools.CreateCommand(SP_NAME_REQUEST_TASK, CommandType.StoredProcedure);
 
-                mDbTools.AddParameter(cmd, "@Return", SqlType.Int, ParameterDirection.ReturnValue);
+                // Define parameter for procedure's return value
+                // If querying a Postgres DB, mPipelineDBProcedureExecutor will auto-change "@return" to "_returnCode"
+                var returnParam = mDbTools.AddParameter(cmd, "@Return", SqlType.Int, ParameterDirection.ReturnValue);
+
                 mDbTools.AddParameter(cmd, "@processorName", SqlType.VarChar, 128, ProcessorName);
                 var taskAvailableParam = mDbTools.AddParameter(cmd, "@taskAvailable", SqlType.TinyInt, ParameterDirection.Output);
                 var taskIdParam = mDbTools.AddParameter(cmd, "@taskID", SqlType.Int, ParameterDirection.Output);
@@ -766,9 +769,11 @@ namespace MyEMSL_MTS_File_Cache_Manager
 
                 //Execute the SP (retry the call up to 4 times)
                 cmd.CommandTimeout = 20;
-                var resCode = mDbTools.ExecuteSP(cmd, 4);
+                mDbTools.ExecuteSP(cmd, 4);
 
-                if (resCode == 0)
+                var returnCode = DBToolsBase.GetReturnCode(returnParam);
+
+                if (returnCode == 0)
                 {
                     var taskAvailable = Convert.ToInt16(taskAvailableParam.Value);
 
@@ -785,7 +790,7 @@ namespace MyEMSL_MTS_File_Cache_Manager
                 }
                 else
                 {
-                    LogTools.LogError("Error " + resCode + " requesting a cache task: " + (string)messageParam.Value);
+                    LogTools.LogError("Error {0} requesting a cache task: {1}", returnCode, (string)messageParam.Value);
                     taskID = 0;
                 }
             }
@@ -805,7 +810,10 @@ namespace MyEMSL_MTS_File_Cache_Manager
                 //Setup for execution of the stored procedure
                 var cmd = mDbTools.CreateCommand(SP_NAME_SET_TASK_COMPLETE, CommandType.StoredProcedure);
 
-                mDbTools.AddParameter(cmd, "@Return", SqlType.Int, ParameterDirection.ReturnValue);
+                // Define parameter for procedure's return value
+                // If querying a Postgres DB, mPipelineDBProcedureExecutor will auto-change "@return" to "_returnCode"
+                var returnParam = mDbTools.AddParameter(cmd, "@Return", SqlType.Int, ParameterDirection.ReturnValue);
+
                 mDbTools.AddParameter(cmd, "@processorName", SqlType.VarChar, 128, ProcessorName);
                 mDbTools.AddParameter(cmd, "@taskID", SqlType.Int).Value = taskID;
                 mDbTools.AddParameter(cmd, "@CompletionCode", SqlType.Int).Value = completionCode;
@@ -817,11 +825,13 @@ namespace MyEMSL_MTS_File_Cache_Manager
 
                 //Execute the SP (retry the call up to 4 times)
                 mDbTools.TimeoutSeconds = 20;
-                var resCode = mDbTools.ExecuteSP(cmd, 4);
+                mDbTools.ExecuteSP(cmd, 4);
 
-                if (resCode != 0)
+                var returnCode = DBToolsBase.GetReturnCode(returnParam);
+
+                if (returnCode != 0)
                 {
-                    LogTools.LogError("Error " + resCode + " setting cache task complete: " + (string)messageParam.Value);
+                    LogTools.LogError("Error " + returnCode + " setting cache task complete: " + (string)messageParam.Value);
                 }
             }
             catch (Exception ex)
