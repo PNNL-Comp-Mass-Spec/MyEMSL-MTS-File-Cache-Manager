@@ -634,8 +634,11 @@ namespace MyEMSL_MTS_File_Cache_Manager
 
                             var fileSizeBytes = targetFile.Length;
 
-                            if (targetFile.Directory != null && !parentFolders.Contains(targetFile.Directory.FullName))
+                            if (targetFile.Directory != null)
+                            {
+                                // Add the parent directory of the target file (if not yet present)
                                 parentFolders.Add(targetFile.Directory.FullName);
+                            }
 
                             targetFile.Delete();
                             bytesDeleted += fileSizeBytes;
