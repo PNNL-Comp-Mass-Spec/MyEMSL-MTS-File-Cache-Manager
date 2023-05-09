@@ -757,7 +757,7 @@ namespace MyEMSL_MTS_File_Cache_Manager
                 var cmd = mDbTools.CreateCommand(SP_NAME_REQUEST_TASK, CommandType.StoredProcedure);
 
                 // Define parameter for procedure's return value
-                // If querying a Postgres DB, mPipelineDBProcedureExecutor will auto-change "@return" to "_returnCode"
+                // If querying a Postgres DB, mDbTools will auto-change "@return" to "_returnCode"
                 var returnParam = mDbTools.AddParameter(cmd, "@Return", SqlType.Int, ParameterDirection.ReturnValue);
 
                 mDbTools.AddParameter(cmd, "@processorName", SqlType.VarChar, 128, ProcessorName);
@@ -811,7 +811,7 @@ namespace MyEMSL_MTS_File_Cache_Manager
                 var cmd = mDbTools.CreateCommand(SP_NAME_SET_TASK_COMPLETE, CommandType.StoredProcedure);
 
                 // Define parameter for procedure's return value
-                // If querying a Postgres DB, mPipelineDBProcedureExecutor will auto-change "@return" to "_returnCode"
+                // If querying a Postgres DB, mDbTools will auto-change "@return" to "_returnCode"
                 var returnParam = mDbTools.AddParameter(cmd, "@Return", SqlType.Int, ParameterDirection.ReturnValue);
 
                 mDbTools.AddParameter(cmd, "@processorName", SqlType.VarChar, 128, ProcessorName);
