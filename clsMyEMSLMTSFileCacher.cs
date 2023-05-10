@@ -76,7 +76,7 @@ namespace MyEMSL_MTS_File_Cache_Manager
 
         public string MTSConnectionString => "Data Source=" + MTSServer + ";Initial Catalog=MT_Main;Integrated Security=SSPI;";
 
-        public int MinimumCacheFreeSpaceGB { get; set;  }
+        public int MinimumCacheFreeSpaceGB { get; set; }
 
         public string MTSServer { get; }
 
@@ -167,7 +167,7 @@ namespace MyEMSL_MTS_File_Cache_Manager
             }
             catch (Exception ex)
             {
-                ReportError("Error in DeleteFolderIfEmpty for " + folderPath + ": " + ex.Message, false, ex);
+                ReportError(string.Format("Error in DeleteFolderIfEmpty for {0}: {1}", folderPath, ex.Message), false, ex);
             }
         }
 
@@ -259,7 +259,7 @@ namespace MyEMSL_MTS_File_Cache_Manager
             }
             catch (Exception ex)
             {
-                ReportError("Error in GetFreeDiskSpaceGB for " + cacheFolderPath + ": " + ex.Message, true, ex);
+                ReportError(string.Format("Error in GetFreeDiskSpaceGB for {0}: {1}", cacheFolderPath, ex.Message), true, ex);
                 freeSpaceBytes = -1;
             }
 
@@ -319,7 +319,7 @@ namespace MyEMSL_MTS_File_Cache_Manager
             LogTools.CreateDbLogger(dbLoggerConnectionString, "MyEMSLFileCacher: " + hostName);
 
             // Make initial log entry
-            var msg = "=== Started MyEMSL MTS File Cacher v" + System.Reflection.Assembly.GetExecutingAssembly().GetName().Version + " === ";
+            var msg = string.Format("=== Started MyEMSL MTS File Cacher v{0} === ", System.Reflection.Assembly.GetExecutingAssembly().GetName().Version);
             LogTools.LogMessage(msg);
 
             var connectionStringToUse = DbToolsFactory.AddApplicationNameToConnectionString(MTSConnectionString, "MyEMSLMTSFileCacher");
@@ -372,10 +372,11 @@ namespace MyEMSL_MTS_File_Cache_Manager
                             return true;
                         }
 
-                        ReportError(
-                            "Disk free space is " + currentFreeSpaceGB.ToString("0.0") + " GB, which is below the threshold of " +
-                            MinimumCacheFreeSpaceGB + " GB. " +
-                            "However, no more files can be purged (none have State = 3 in MT_Main..V_MyEMSL_FileCache)", true);
+                        ReportError(string.Format(
+                            "Disk free space is {0:0.0} GB, which is below the threshold of {1} GB. " +
+                            "However, no more files can be purged (none have State = 3 in MT_Main..V_MyEMSL_FileCache)",
+                            currentFreeSpaceGB, MinimumCacheFreeSpaceGB), true);
+
                         return false;
                     }
 
@@ -386,8 +387,10 @@ namespace MyEMSL_MTS_File_Cache_Manager
                             cacheFolderPath = oldestCachedFiles.First().ServerPath;
                             if (string.IsNullOrEmpty(cacheFolderPath))
                             {
-                                ReportError("Server_Path is empty for EntryID " + oldestCachedFiles.First().EntryID + ", " + oldestCachedFiles.First().Filename +
-                                            "; Unable to manage cached files");
+                                ReportError(string.Format(
+                                    "Server_Path is empty for EntryID {0}, {1}; Unable to manage cached files",
+                                    oldestCachedFiles.First().EntryID, oldestCachedFiles.First().Filename));
+
                                 return false;
                             }
                         }
@@ -423,7 +426,9 @@ namespace MyEMSL_MTS_File_Cache_Manager
                     // Need to delete some files
                     var dataToDeleteGB = MinimumCacheFreeSpaceGB - currentFreeSpaceGB;
 
-                    ReportMessage("Disk free space of " + currentFreeSpaceGB.ToString("0.0") + " is below the threshold of " + MinimumCacheFreeSpaceGB + " GB; purge required");
+                    ReportMessage(string.Format(
+                        "Disk free space of {0:0.0} is below the threshold of {1} GB; purge required",
+                        currentFreeSpaceGB, MinimumCacheFreeSpaceGB));
 
                     var success = PurgeOldFiles(oldestCachedFiles, cacheFolderPath, dataToDeleteGB);
                     if (!success)
@@ -432,7 +437,7 @@ namespace MyEMSL_MTS_File_Cache_Manager
             }
             catch (Exception ex)
             {
-                ReportError("Error in ManageCachedFiles for server " + MTSServer + ": " + ex.Message, true, ex);
+                ReportError(string.Format("Error in ManageCachedFiles for server {0}: {1}", MTSServer, ex.Message), true, ex);
                 return false;
             }
 
@@ -473,7 +478,7 @@ namespace MyEMSL_MTS_File_Cache_Manager
             }
             catch (Exception ex)
             {
-                ReportError("Error in PreviewFilesToCache for server " + MTSServer + ": " + ex.Message, true, ex);
+                ReportError(string.Format("Error in PreviewFilesToCache for server {0}: {1}", MTSServer, ex.Message), true, ex);
                 return false;
             }
 
@@ -548,9 +553,10 @@ namespace MyEMSL_MTS_File_Cache_Manager
                             logToDB = true;
                         }
 
-                        ReportMessage(
-                            "Could not find file " + Path.Combine(targetFile.ResultsFolderName, targetFile.Filename) + " in MyEMSL for dataset " +
-                            datasetID + " in MyEMSL", BaseLogger.LogLevels.ERROR, logToDB);
+                        ReportMessage(string.Format(
+                               "Could not find file {0} in MyEMSL for dataset ID {1}",
+                               Path.Combine(targetFile.ResultsFolderName, targetFile.Filename), datasetID),
+                           BaseLogger.LogLevels.ERROR, logToDB);
 
                         continue;
                     }
@@ -599,7 +605,7 @@ namespace MyEMSL_MTS_File_Cache_Manager
             }
             catch (Exception ex)
             {
-                ReportError("Error in ProcessTask for server " + MTSServer + ": " + ex.Message, true, ex);
+                ReportError(string.Format("Error in ProcessTask for server {0}: {1}", MTSServer, ex.Message), true, ex);
                 return false;
             }
         }
@@ -707,7 +713,7 @@ namespace MyEMSL_MTS_File_Cache_Manager
             }
             catch (Exception ex)
             {
-                ReportError("Error in PurgeOldFiles for server " + MTSServer + ": " + ex.Message, true, ex);
+                ReportError(string.Format("Error in PurgeOldFiles for server {0}: {1}", MTSServer, ex.Message), true, ex);
                 return false;
             }
 
@@ -763,7 +769,7 @@ namespace MyEMSL_MTS_File_Cache_Manager
                 var taskIdParam = mDbTools.AddParameter(cmd, "@taskID", SqlType.Int, ParameterDirection.InputOutput);
                 var messageParam = mDbTools.AddParameter(cmd, "@message", SqlType.VarChar, 512, ParameterDirection.InputOutput);
 
-                ReportMessage("Calling " + cmd.CommandText + " on " + MTSServer, BaseLogger.LogLevels.DEBUG);
+                ReportMessage(string.Format("Calling {0} on {1}", SP_NAME_REQUEST_TASK, MTSServer), BaseLogger.LogLevels.DEBUG);
 
                 //Execute the SP (retry the call up to 4 times)
                 cmd.CommandTimeout = 20;
@@ -818,7 +824,7 @@ namespace MyEMSL_MTS_File_Cache_Manager
                 mDbTools.AddParameter(cmd, "@CachedFileIDs", SqlType.VarChar, -1, string.Join(",", cachedFileIDs));
                 var messageParam = mDbTools.AddParameter(cmd, "@message", SqlType.VarChar, 512, ParameterDirection.InputOutput);
 
-                    ReportMessage("Calling " + cmd.CommandText + " on " + MTSServer, BaseLogger.LogLevels.DEBUG);
+                ReportMessage(string.Format("Calling {0} on {1}", SP_NAME_SET_TASK_COMPLETE, MTSServer), BaseLogger.LogLevels.DEBUG);
 
                 //Execute the SP (retry the call up to 4 times)
                 mDbTools.TimeoutSeconds = 20;
