@@ -749,8 +749,6 @@ namespace MyEMSL_MTS_File_Cache_Manager
 
         private int RequestTask()
         {
-            var taskID = 0;
-
             try
             {
                 //Setup for execution of the stored procedure
@@ -779,28 +777,27 @@ namespace MyEMSL_MTS_File_Cache_Manager
 
                     if (taskAvailable > 0)
                     {
-                        taskID = Convert.ToInt32(taskIdParam.Value);
+                        var taskID = Convert.ToInt32(taskIdParam.Value);
 
-                        ReportMessage("Received cache task " + taskID + " from " + MTSServer);
+                        ReportMessage(string.Format("Received cache task {0} from {1}", taskID, MTSServer));
+                        return taskID;
                     }
-                    else
-                    {
-                        ReportMessage(cmd.CommandText + " returned taskAvailable = 0 ", BaseLogger.LogLevels.DEBUG);
-                    }
+
+                    ReportMessage(string.Format("{0} returned taskAvailable = 0 ", SP_NAME_REQUEST_TASK), BaseLogger.LogLevels.DEBUG);
+                    return 0;
                 }
-                else
-                {
-                    LogTools.LogError("Error {0} requesting a cache task: {1}", returnCode, (string)messageParam.Value);
-                    taskID = 0;
-                }
+
+                var outputMessage = messageParam.Value.CastDBVal<string>();
+                var message = string.IsNullOrWhiteSpace(outputMessage) ? "Unknown error" : outputMessage;
+
+                LogTools.LogError("Error {0} requesting a cache task: {1}", returnCode, message);
+                return 0;
             }
             catch (Exception ex)
             {
                 ReportError(string.Format("Error in RequestTask for server {0}: {1}", MTSServer, ex.Message), true, ex);
-                taskID = 0;
+                return 0;
             }
-
-            return taskID;
         }
 
         private void SetTaskComplete(int taskID, int completionCode, string completionMessage, IEnumerable<int> cachedFileIDs)
@@ -829,10 +826,13 @@ namespace MyEMSL_MTS_File_Cache_Manager
 
                 var returnCode = DBToolsBase.GetReturnCode(returnParam);
 
-                if (returnCode != 0)
-                {
-                    LogTools.LogError("Error " + returnCode + " setting cache task complete: " + (string)messageParam.Value);
-                }
+                if (returnCode == 0)
+                    return;
+
+                var outputMessage = messageParam.Value.CastDBVal<string>();
+                var message = string.IsNullOrWhiteSpace(outputMessage) ? "Unknown error" : outputMessage;
+
+                LogTools.LogError("Error {0} setting cache task complete: {1}", returnCode, message);
             }
             catch (Exception ex)
             {
